@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Video, Mic, MicOff, BrainCircuit, Play, Square, Loader2, Activity } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -10,6 +11,7 @@ interface ChatMessage {
 }
 
 export default function AIHirePage() {
+    const { t, language } = useLanguage();
     const [isInterviewing, setIsInterviewing] = useState(false);
     const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -55,9 +57,22 @@ export default function AIHirePage() {
             utteranceRef.current = utterance;
 
             const voices = synth.getVoices();
-            const voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+            
+            // Try to find a voice that matches the selected language
+            const langCode = language === 'en' ? 'en' : 
+                            language === 'hi' ? 'hi' : 
+                            language === 'te' ? 'te' : 
+                            language === 'ta' ? 'ta' : 
+                            language === 'kn' ? 'kn' : 
+                            language === 'bn' ? 'bn' : 
+                            language === 'gu' ? 'gu' : 
+                            language === 'mr' ? 'mr' : 'en';
+
+            const voice = voices.find(v => v.lang.startsWith(langCode) && v.name.includes('Google'))
+                || voices.find(v => v.lang.startsWith(langCode))
                 || voices.find(v => v.lang.startsWith('en'))
                 || voices[0];
+            
             if (voice) utterance.voice = voice;
 
             utterance.rate = 1.0;
@@ -72,25 +87,32 @@ export default function AIHirePage() {
 
             synth.speak(utterance);
         }, 100);
-    }, []);
+    }, [language]);
 
     // Transcribe audio using Groq Whisper
     const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.webm');
+        try {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+            formData.append('language', language); // Dynamic language hint
 
-        const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            body: formData,
-        });
+            const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                body: formData,
+            });
 
-        if (!response.ok) {
-            console.warn('[Transcribe] Failed:', response.status);
-            return '';
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('[Transcribe] Failed:', response.status, data.error, data.details);
+                return `ERROR: ${data.details || data.error || 'Unknown error'}`;
+            }
+
+            return data.text || '';
+        } catch (err: any) {
+            console.error('[Transcribe] Request Exception:', err);
+            return `ERROR: ${err.message || 'Connection failed'}`;
         }
-
-        const data = await response.json();
-        return data.text || '';
     };
 
     // Send transcribed text to Groq Chat
@@ -110,7 +132,10 @@ export default function AIHirePage() {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: newMessages }),
+                body: JSON.stringify({ 
+                    messages: newMessages,
+                    language: language // Handle language in chat if needed
+                }),
             });
 
             if (!response.ok) {
@@ -129,7 +154,7 @@ export default function AIHirePage() {
         } finally {
             setIsThinking(false);
         }
-    }, [speakText]);
+    }, [speakText, language]);
 
     // Start recording audio via MediaRecorder
     const startRecording = async () => {
@@ -138,17 +163,34 @@ export default function AIHirePage() {
             synthRef.current?.cancel();
             setIsSpeaking(false);
 
-            // Get mic access
-            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Get mic access with better constraints
+            const micStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    sampleRate: 44100
+                } 
+            });
+            
+            // Log track info for debugging
+            const audioTrack = micStream.getAudioTracks()[0];
+            console.log(`[Mic] Using track: ${audioTrack.label}, Enabled: ${audioTrack.enabled}, ReadyState: ${audioTrack.readyState}`);
+            
             audioStreamRef.current = micStream;
             audioChunksRef.current = [];
 
-            const recorder = new MediaRecorder(micStream);
+            const options = { mimeType: 'audio/webm;codecs=opus' };
+            const recorder = MediaRecorder.isTypeSupported(options.mimeType) 
+                ? new MediaRecorder(micStream, options) 
+                : new MediaRecorder(micStream);
+                
             recorderRef.current = recorder;
 
             recorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
+                if (event.data && event.data.size > 0) {
                     audioChunksRef.current.push(event.data);
+                    console.log(`[Recorder] Chunk received: ${event.data.size} bytes`);
                 }
             };
 
@@ -157,31 +199,34 @@ export default function AIHirePage() {
                 micStream.getTracks().forEach(t => t.stop());
                 audioStreamRef.current = null;
 
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const audioBlob = new Blob(audioChunksRef.current, { type: recorderRef.current?.mimeType || 'audio/webm' });
+                console.log(`[Recorder] Recording stopped. Total chunks: ${audioChunksRef.current.length}, Total size: ${audioBlob.size} bytes`);
                 audioChunksRef.current = [];
 
-                if (audioBlob.size < 1000) {
-                    setStatusText('Recording was too short. Please speak a bit longer.');
+                if (audioBlob.size < 2000) {
+                    setStatusText('Recording was too short or silent. Please speak clearly for a few seconds.');
+                    setIsThinking(false);
                     return;
                 }
 
-                setStatusText('Transcribing your answer...');
+                setStatusText(t('aihire.transcribing'));
                 setIsThinking(true);
 
                 const text = await transcribeAudio(audioBlob);
 
-                if (text) {
+                if (text && !text.startsWith('ERROR:')) {
                     setStatusText('');
                     await sendToAI(text);
                 } else {
-                    setStatusText('Could not understand. Please try again and speak clearly.');
+                    const errorMsg = text.startsWith('ERROR:') ? text.replace('ERROR: ', '') : 'Could not understand. Please try again.';
+                    setStatusText(`Error: ${errorMsg}`);
                     setIsThinking(false);
                 }
             };
 
-            recorder.start();
+            recorder.start(1000); // Capture chunks every second
             setIsRecording(true);
-            setStatusText('🎤 Listening... Click mic again when done speaking.');
+            setStatusText(t('aihire.startRecording'));
         } catch {
             setStatusText('Microphone access denied. Please allow mic permissions.');
         }
@@ -211,7 +256,19 @@ export default function AIHirePage() {
             setVideoStream(camStream);
             setIsInterviewing(true);
 
-            const greeting = "Hello! I am Nexus. Let's start the interview. Please briefly introduce yourself and tell me what role or field you are interested in.";
+            // Basic localization for the greeting
+            const greetings: Record<string, string> = {
+                en: "Hello! I am Nexus. Let's start the interview. Please briefly introduce yourself and tell me what role or field you are interested in.",
+                hi: "नमस्ते! मैं नेक्सस हूँ। चलिए इंटरव्यू शुरू करते हैं। कृपया संक्षेप में अपना परिचय दें और मुझे बताएं कि आप किस भूमिका या क्षेत्र में रुचि रखते हैं।",
+                te: "నమస్కారం! నేను నెక్సస్. ఇంటర్వ్యూ ప్రారంభిద్దాం. దయచేసి సంక్షిప్తంగా మీ పరిచయం చెప్పండి మరియు మీరు ఏ పాత్ర లేదా రంగంపై ఆసక్తి కలిగి ఉన్నారో నాకు తెలియజేయండి.",
+                ta: "வணக்கம்! நான் நெக்ஸஸ். இன்டர்வியூவைத் துவங்குவோம். தயவுசெய்து சுருக்கமாக உங்களை அறிமுகப்படுத்திக் கொள்ளுங்கள், எந்தத் துறையில் உங்களுக்கு விருப்பம் என்று சொல்லுங்கள்.",
+                kn: "ನಮಸ್ಕಾರ! ನಾನು ನೆಕ್ಸಸ್. ಇಂಟರ್ವ್ಯೂ ಪ್ರಾರಂಭಿಸೋಣ. ದಯವಿಟ್ಟು ಸಂಕ್ಷಿಪ್ತವಾಗಿ ನಿಮ್ಮ ಪರಿಚಯ ಹೇಳಿ ಮತ್ತು ನೀವು ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಆಸಕ್ತಿ ಹೊಂದಿದ್ದೀರಿ ಎಂದು ನನಗೆ ತಿಳಿಸಿ.",
+                bn: "নমস্কার! আমি নেক্সাস। চলুন ইন্টারভিউ শুরু করি। অনুগ্রহ করে সংক্ষেপে আপনার পরিচয় দিন এবং আমাকে বলুন আপনি কোন ভূমিকা বা ক্ষেত্রে আগ্রহী।",
+                gu: "નમસ્તે! હું નેક્સસ છું. ચાલો ઇન્ટરવ્યુ શરૂ કરીએ. કૃપા કરીને ટૂંકમાં તમારો પરિચય આપો અને મને જણાવો કે તમને કઈ ભૂમિકા અથવા ક્ષેત્રમાં રસ છે.",
+                mr: "नमस्ते! मी नेक्सस आहे. चला इंटरव्यू सुरू करूया. कृपया थोडक्यात तुमची ओळख करून द्या आणि मला सांगा की तुम्हाला कोणत्या भूमिकेत किंवा क्षेत्रात रस आहे."
+            };
+
+            const greeting = greetings[language] || greetings.en;
             setMessages([{ role: 'assistant', content: greeting }]);
             speakText(greeting);
         } catch {
@@ -300,21 +357,21 @@ export default function AIHirePage() {
                                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/50 backdrop-blur-lg p-2 rounded-full border border-white/10">
                                         <button
                                             onClick={toggleRecording}
-                                            title={isRecording ? 'Click to stop & submit your answer' : 'Click to start speaking'}
+                                            title={isRecording ? t('aihire.stopRecording') : t('aihire.startRecording')}
                                             className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/50' : 'bg-gray-800 hover:bg-gray-700 text-white'}`}
                                             disabled={isThinking}
                                         >
                                             {isRecording ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
                                         </button>
-                                        <button onClick={endInterview} className="px-6 py-3 rounded-full hover:bg-red-500/20 text-red-400 font-bold flex items-center gap-2 transition ml-2">
-                                            <Square className="w-4 h-4 fill-current" /> End
+                                        <button onClick={endInterview} className="px-6 py-3 rounded-full hover:bg-red-500/20 text-red-400 font-bold flex items-center gap-2 transition ml-2 uppercase tracking-tighter text-xs">
+                                            <Square className="w-4 h-4 fill-current" /> {t('common.close')}
                                         </button>
                                     </div>
                                 </>
                             ) : (
                                 <div className="text-center">
                                     <Video className="w-16 h-16 text-[var(--color-muted)] mx-auto mb-4 opacity-50" />
-                                    <p className="text-[var(--color-muted)] mb-6">Camera preview will appear here</p>
+                                    <p className="text-[var(--color-muted)] mb-6">{t('aihire.subtitle')}</p>
                                     <button onClick={startInterview} className="px-8 py-4 rounded-full bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white font-bold text-lg flex items-center gap-2 transition shadow-lg shadow-[var(--color-primary)]/20 hover:scale-105 mx-auto">
                                         <Play className="w-5 h-5 fill-current" /> Start Interview
                                     </button>
@@ -328,7 +385,7 @@ export default function AIHirePage() {
                         <div className="glass flex-1 rounded-3xl p-6 border border-[var(--color-border)] flex flex-col">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2 shrink-0">
                                 <BrainCircuit className="w-5 h-5 text-[var(--color-primary)]" />
-                                Live Assessment
+                                {t('navbar.aihire')}
                             </h3>
                             {!isInterviewing ? (
                                 <div className="flex-1 flex flex-col items-center justify-center text-center text-[var(--color-muted)] opacity-50">
@@ -354,7 +411,7 @@ export default function AIHirePage() {
                                         </div>
                                     </div>
                                     <div className="pt-4 border-t border-white/10">
-                                        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">Live Transcript</p>
+                                        <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">{t('aihire.transcript')}</p>
                                         <div className="space-y-4">
                                             {messages.map((msg, idx) => (
                                                 <div key={idx} className={`p-3 rounded-xl text-sm ${msg.role === 'assistant' ? 'bg-[var(--color-primary)]/10 text-gray-200 border border-[var(--color-primary)]/20' : 'bg-white/5 text-gray-400 border border-white/10'}`}>

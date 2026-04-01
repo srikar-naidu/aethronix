@@ -1,4 +1,5 @@
 const Groq = require('groq-sdk');
+const fs = require('fs');
 
 const apiKey = process.env.GROQ_API_KEY;
 
@@ -6,19 +7,18 @@ const groq = new Groq({ apiKey });
 
 async function main() {
     try {
-        const chatCompletion = await groq.chat.completions.create({
-            "messages": [{ "role": "user", "content": "Explain the importance of low latency LLMs." }],
-            "model": "llama-3.1-8b-instant",
-            "temperature": 1,
-            "max_tokens": 1024,
-            "top_p": 1,
-            "stream": false,
-            "stop": null
+        console.log("Testing Transcription with key length:", apiKey?.length);
+        // We need a small audio file to test. Let's see if we can use any file and hope Whisper accepts or errors correctly.
+        // Actually, let's just make sure we are not getting 401.
+        
+        const transcription = await groq.audio.transcriptions.create({
+            file: fs.createReadStream('test-groq.js'), // Dummy file to check auth
+            model: 'whisper-large-v3',
         });
         console.log("SUCCESS");
-        console.log(chatCompletion.choices[0]?.message?.content || "");
+        console.log(transcription.text);
     } catch (err) {
-        console.error("ERROR from Groq:", err.status || err.message, err);
+        console.error("ERROR from Groq:", err.status || err.message, JSON.stringify(err.error || err));
     }
 }
 

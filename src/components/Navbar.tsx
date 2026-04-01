@@ -4,28 +4,31 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Globe } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import LanguageSelector from './LanguageSelector';
+import { useLanguage } from '@/context/LanguageContext';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-const navLinks = [
-    { name: 'Verify', href: '/verify' },
-    { name: 'MatchAI', href: '/match-ai' },
-    { name: 'MockPrep', href: '/mock-prep' },
-    { name: 'AI Hire', href: '/ai-hire' },
-    { name: 'Portfolio', href: '/portfolio' },
-    { name: 'Roadmap', href: '/roadmap' },
-    { name: 'Heatmap', href: '/heatmap' },
-    { name: 'QuickHire', href: '/quick-hire' },
-];
-
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const { t } = useLanguage();
+
+    const navLinks = [
+        { name: t('navbar.verify'), href: '/verify' },
+        { name: t('navbar.matchai'), href: '/match-ai' },
+        { name: t('navbar.mockprep'), href: '/mock-prep' },
+        { name: t('navbar.aihire'), href: '/ai-hire' },
+        { name: t('navbar.portfolio'), href: '/portfolio' },
+        { name: t('navbar.roadmap'), href: '/roadmap' },
+        { name: t('navbar.resumeparser'), href: '/resume-parser' },
+        { name: t('navbar.quickhire'), href: '/quick-hire' },
+    ];
 
     return (
         <header className="sticky top-0 z-50 w-full glass border-b border-[var(--color-border)]">
@@ -63,11 +66,13 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <LanguageSelector />
+                        
                         <Link
                             href="/login"
-                            className="hidden sm:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90"
+                            className="hidden sm:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 font-bold"
                         >
-                            Login
+                            {t('navbar.login')}
                         </Link>
 
                         {/* Mobile menu button */}
@@ -112,9 +117,9 @@ export default function Navbar() {
                             <Link
                                 href="/login"
                                 onClick={() => setIsOpen(false)}
-                                className="mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-base font-medium bg-[var(--color-primary)] text-white"
+                                className="mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-base font-medium bg-[var(--color-primary)] text-white font-bold"
                             >
-                                Login
+                                {t('navbar.login')}
                             </Link>
                         </div>
                     </motion.div>
