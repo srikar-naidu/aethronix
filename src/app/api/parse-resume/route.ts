@@ -3,7 +3,7 @@ import Groq from 'groq-sdk';
 
 export async function POST(req: Request) {
     try {
-        const apiKey = (process.env.GROQ_API_KEY || '').trim();
+        const apiKey = (process.env.GROQ_RESUME_API_KEY || '').trim();
         if (!apiKey) {
             return NextResponse.json({ error: 'Server configuration error: missing GROQ API Key' }, { status: 500 });
         }

@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
+import dynamic from 'next/dynamic';
+
+const SplineScene = dynamic(() => import('@/components/SplineScene'), { ssr: false });
 
 export default function Home() {
   const { t } = useLanguage();
@@ -79,14 +82,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--color-background)]">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-48 lg:pb-32">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--color-primary)]/20 via-[var(--color-background)] to-[var(--color-background)]" />
+      {/* Hero Section - Full Screen with Spline Background */}
+      <section className="relative h-screen overflow-hidden">
+        {/* Full-Screen Spline 3D Background - Zoomed In */}
+        <div className="absolute inset-[-25%] z-0">
+          <SplineScene />
+        </div>
 
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        {/* Gradient Overlay for Text Readability - pointer-events-none so Spline stays interactive */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-black/80 via-black/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-[var(--color-background)] via-transparent to-transparent pointer-events-none" />
 
-            {/* Left Content */}
+        {/* Floating Text Content - pointer-events-none on wrapper, enabled on interactive elements */}
+        <div className="relative z-[2] h-full flex items-center pointer-events-none">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -99,70 +108,25 @@ export default function Home() {
                   {t('home.hero.titleBold')}
                 </span>
               </h1>
-              <p className="text-xl text-[var(--color-muted)] mb-8 leading-relaxed">
+              <p className="text-xl text-white/70 mb-8 leading-relaxed">
                 {t('home.hero.subtitle')}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 pointer-events-auto">
                 <Link
                   href="/login"
-                  className="inline-flex justify-center items-center px-8 py-4 rounded-xl bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary)]/90 transition-all hover:scale-105"
+                  className="inline-flex justify-center items-center px-8 py-4 rounded-xl bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary)]/90 transition-all hover:scale-105 shadow-lg shadow-[var(--color-primary)]/25"
                 >
                   {t('home.hero.getStarted')}
                 </Link>
                 <Link
                   href="/explore"
-                  className="inline-flex justify-center items-center px-8 py-4 rounded-xl glass glass-hover text-white font-semibold transition-all hover:scale-105"
+                  className="inline-flex justify-center items-center px-8 py-4 rounded-xl glass text-white font-semibold transition-all hover:scale-105 backdrop-blur-md"
                 >
                   {t('home.hero.explore')}
                 </Link>
               </div>
             </motion.div>
-
-            {/* Right Content - Floating Cards */}
-            <div className="relative h-[400px] lg:h-[500px] hidden md:block">
-              {/* Card 1 */}
-              <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-10 right-10 w-64 glass p-6 rounded-2xl border border-[var(--color-primary)]/30 shadow-2xl shadow-[var(--color-primary)]/10"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center text-white font-bold text-xl">
-                    98
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">AI Skill Score</h3>
-                    <p className="text-sm text-[var(--color-accent)]">Top 2% Globally</p>
-                  </div>
-                </div>
-                <div className="w-full bg-[var(--color-border)] rounded-full h-2">
-                  <div className="bg-[var(--color-accent)] h-2 rounded-full w-[98%]"></div>
-                </div>
-              </motion.div>
-
-              {/* Card 2 */}
-              <motion.div
-                animate={{ y: [0, 20, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-20 left-10 w-72 glass p-5 rounded-2xl shadow-xl shadow-black/50 z-10"
-              >
-                <div className="flex items-start gap-4">
-                  <img src="https://i.pravatar.cc/150?u=a042581f4e29026024d" alt="Student" className="w-10 h-10 rounded-full border-2 border-[var(--color-accent)]" />
-                  <div>
-                    <h3 className="font-medium text-white">Interview Analysis</h3>
-                    <p className="text-xs text-[var(--color-muted)] mt-1">"Excellent problem breakdown and communication. Code was optimal."</p>
-                    <div className="mt-3 flex gap-2">
-                      <span className="px-2 py-1 rounded bg-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Verified
-                      </span>
-                      <span className="px-2 py-1 rounded bg-[var(--color-accent)]/20 text-[var(--color-accent)] text-xs font-medium">React</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
           </div>
         </div>
       </section>

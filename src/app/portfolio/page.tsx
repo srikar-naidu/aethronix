@@ -137,14 +137,15 @@ export default function PortfolioPage() {
                 {/* Portfolio Preview Panel */}
                 <div 
                     id="portfolio-container"
-                    className="bg-white text-black rounded-[2rem] p-8 md:p-12 shadow-2xl mx-auto border border-white/20 relative overflow-hidden"
+                    className="bg-zinc-900 text-gray-100 rounded-[2rem] p-8 md:p-12 shadow-2xl mx-auto border border-white/5 relative overflow-hidden transition-all duration-500
+                               print:bg-white print:text-black print:p-0 print:border-none print:shadow-none"
                 >
 
                     {/* Header */}
                     <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-8 mb-8 gap-6">
                         <div>
-                            <h2 className="text-4xl font-extrabold mb-2">{data.personalInfo.name}</h2>
-                            <p className="text-xl text-gray-600 font-medium">{data.personalInfo.role}</p>
+                            <h2 className="text-4xl font-extrabold mb-2 text-white print:text-black">{data.personalInfo.name}</h2>
+                            <p className="text-xl text-[var(--color-accent)] font-medium print:text-gray-600">{data.personalInfo.role}</p>
                         </div>
                         <div className="flex gap-4 no-print">
                             {data.personalInfo.github && <a href={data.personalInfo.github} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition"><Github className="w-5 h-5 " /></a>}
@@ -159,8 +160,8 @@ export default function PortfolioPage() {
                         <div className="md:col-span-2 space-y-10">
 
                             <section>
-                                <h3 className="text-xl font-bold uppercase tracking-wider text-gray-400 mb-4 pb-2 border-b">Summary</h3>
-                                <p className="text-gray-700 leading-relaxed text-lg">
+                                <h3 className="text-xl font-bold uppercase tracking-wider text-[var(--color-primary)] mb-4 pb-2 border-b border-white/10 print:text-gray-400 print:border-gray-200">Summary</h3>
+                                <p className="text-gray-300 leading-relaxed text-lg print:text-gray-700">
                                     {data.summary}
                                 </p>
                             </section>
@@ -172,11 +173,11 @@ export default function PortfolioPage() {
                                     {data.experience.map((exp, idx) => (
                                         <div key={idx}>
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-xl font-bold text-gray-900">{exp.role}</h4>
-                                                <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">{exp.duration}</span>
+                                                <h4 className="text-xl font-bold text-white print:text-gray-900">{exp.role}</h4>
+                                                <span className="text-sm font-bold text-gray-400 bg-white/5 px-2 py-1 rounded print:text-gray-500 print:bg-gray-100">{exp.duration}</span>
                                             </div>
                                             <p className="text-[var(--color-primary)] mb-2 font-medium">{exp.company}</p>
-                                            <p className="text-gray-700 leading-relaxed">{exp.impact}</p>
+                                            <p className="text-gray-300 leading-relaxed print:text-gray-700">{exp.impact}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -188,10 +189,10 @@ export default function PortfolioPage() {
                         <div className="space-y-10">
 
                             <section>
-                                <h3 className="text-lg font-bold uppercase tracking-wider text-gray-400 mb-4 pb-2 border-b">Technical Skills</h3>
+                                <h3 className="text-lg font-bold uppercase tracking-wider text-[var(--color-primary)] mb-4 pb-2 border-b border-white/10 print:text-gray-400 print:border-gray-200">Technical Skills</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {data.skills.technical.map(skill => (
-                                        <span key={skill} className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium">{skill}</span>
+                                        <span key={skill} className="bg-[var(--color-primary)]/10 text-[var(--color-accent)] border border-[var(--color-primary)]/20 px-3 py-1.5 rounded-lg text-sm font-medium print:bg-gray-900 print:text-white">{skill}</span>
                                     ))}
                                 </div>
                             </section>
@@ -206,23 +207,23 @@ export default function PortfolioPage() {
                             </section>
 
                             <section className="page-break-avoid">
-                                <h3 className="text-lg font-bold uppercase tracking-wider text-gray-400 mb-4 pb-2 border-b">SkillBridge Badges</h3>
+                                <h3 className="text-lg font-bold uppercase tracking-wider text-[var(--color-primary)] mb-4 pb-2 border-b border-white/10 print:text-gray-400 print:border-gray-200">SkillBridge Badges</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 border border-blue-100">
-                                            <Award className="w-5 h-5 text-blue-600" />
+                                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 print:bg-blue-50 print:border-blue-100">
+                                            <Award className="w-5 h-5 text-[var(--color-primary)] print:text-blue-600" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-900 text-sm">Verified Profile</p>
+                                            <p className="font-bold text-white text-sm print:text-gray-900">Verified Profile</p>
                                             <p className="text-xs text-gray-500">Issued by SkillBridge AI</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0 border border-green-100">
-                                            <Award className="w-5 h-5 text-green-600" />
+                                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 print:bg-green-50 print:border-green-100">
+                                            <Award className="w-5 h-5 text-[var(--color-accent)] print:text-green-600" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-900 text-sm">Skill-First Certification</p>
+                                            <p className="font-bold text-white text-sm print:text-gray-900">Skill-First Certification</p>
                                             <p className="text-xs text-gray-500">Ready for Internships</p>
                                         </div>
                                     </div>

@@ -3,18 +3,9 @@ import Groq from 'groq-sdk';
 
 export async function POST(req: Request) {
     try {
-        const apiKey = (process.env.GROQ_API_KEY || '').trim();
-        
-        // Log all environment variables starting with GROQ (masked)
-        Object.keys(process.env).forEach(key => {
-            if (key.includes('GROQ')) {
-                const val = process.env[key] || '';
-                console.log(`[Env Debug] Found ${key}: length ${val.length}, starts with ${val.substring(0, 4)}`);
-            }
-        });
-
+        const apiKey = (process.env.GROQ_HIRE_API_KEY || '').trim();
         if (!apiKey) {
-            console.error('[Transcribe] GROQ_API_KEY is missing from environment variables.');
+            console.error('[Transcribe API] GROQ_HIRE_API_KEY is missing.');
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
         }
 
@@ -25,36 +16,50 @@ export async function POST(req: Request) {
         const language = formData.get('language') as string || 'en';
 
         if (!audioFile) {
-            console.error('[Transcribe] No audio file in formData');
+            console.error('[Transcribe API] No audio file in formData');
             return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
         }
 
-        console.log(`[Transcribe] Received file: ${audioFile.name}, size: ${audioFile.size} bytes, type: ${audioFile.type}, language hint: ${language}`);
+        // 1. ArrayBuffer extraction for SDK compatibility
+        console.time('[Transcribe API Process]');
+        const arrayBuffer = await audioFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-        if (audioFile.size < 100) {
-            console.warn('[Transcribe] Audio file is suspiciously small.');
+        if (buffer.length < 500) {
+            console.warn('[Transcribe API] Buffer too small:', buffer.length);
+            return NextResponse.json({ error: 'Audio too short', details: 'Speak for at least 3 seconds.' }, { status: 400 });
         }
 
+        // 2. Perform Transcription using Whisper-large-v3
+        // Switched to groq.toFile() - the SDK's native and most robust buffer handling method.
         const transcription = await groq.audio.transcriptions.create({
-            file: audioFile,
+            file: await Groq.toFile(buffer, 'recording.webm', { type: 'audio/webm' }),
             model: 'whisper-large-v3',
             language: language,
             response_format: 'json',
+            temperature: 0.0,
         });
 
-        return NextResponse.json({ 
-            text: transcription.text,
-            debug: {
-                size: audioFile.size,
-                type: audioFile.type,
-                name: audioFile.name,
-            }
-        });
+        console.timeEnd('[Transcribe API Process]');
+        const text = transcription.text || '';
+        
+        return NextResponse.json({ text });
+
     } catch (error: any) {
-        console.warn('Whisper API Error:', error?.message || error);
+        console.error('[Transcribe API Detailed Error]:', {
+            message: error?.message,
+            status: error?.status,
+            name: error?.name,
+            details: error?.details || 'No extended details'
+        });
+        
+        if (error?.status === 401 || error?.message?.includes('key')) {
+            return NextResponse.json({ error: 'Authentication Error', details: 'Invalid API Key configuration.' }, { status: 500 });
+        }
+
         return NextResponse.json({ 
             error: 'Transcription failed', 
-            details: error?.message || 'Unknown error'
-        }, { status: error?.status || 500 });
+            details: error?.message || 'The AI was unable to hear clearly. Please speak closer to the microphone and try again.'
+        }, { status: 500 });
     }
 }

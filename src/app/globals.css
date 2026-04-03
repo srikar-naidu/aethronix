@@ -1,13 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #0B0F17;
-  --color-foreground: #E5E7EB;
-  --color-primary: #4F46E5;
-  --color-accent: #22C55E;
-  --color-muted: #9CA3AF;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-card: rgba(255, 255, 255, 0.05);
+  /* Deep Charcoal Background for OLED Black feel */
+  --color-background: #050505; 
+  --color-foreground: #F8F9FA;
+  
+  /* High-Performance Crimson Palette */
+  --color-primary: #DC143C; 
+  --color-secondary: #8B0000;
+  --color-accent: #FF4D4D;
+  
+  --color-muted: #888888;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-card: rgba(255, 255, 255, 0.03);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -26,47 +32,46 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Glassmorphism Utility ===== */
+/* ===== Glassmorphism Utility (Red-Tinged) ===== */
 .glass {
   background: var(--color-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--color-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(220, 20, 60, 0.15); /* Crimson tint */
 }
 
-/* ===== Custom Scrollbar ===== */
+/* ===== Custom Crimson Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(220, 20, 60, 0.15); /* Crimson translucent */
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(220, 20, 60, 0.4); /* Stronger Crimson on hover */
 }
 
-/* ===== Selection Styles ===== */
+/* ===== Crimson Selection Styles ===== */
 ::selection {
-  background: rgba(79, 70, 229, 0.3);
+  background: rgba(220, 20, 60, 0.3);
   color: white;
 }
 
-/* ===== Print Styles ===== */
+/* ===== Print Styles (Ink Friendly) ===== */
 @media print {
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
 
-  /* Hide everything except the main content */
   nav, 
   header.sticky,
   button,
@@ -87,7 +92,6 @@ body {
     padding: 0 !important;
   }
 
-  /* Ensure the portfolio card takes full width and has no shadows/borders */
   .shadow-2xl, .shadow-xl {
     box-shadow: none !important;
   }

@@ -241,12 +241,12 @@ export default function ResumeParserPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
                     <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                       <CheckCircle className="w-4 h-4 text-green-400" />
+                       <CheckCircle className="w-4 h-4 text-[var(--color-accent)]" />
                        {t('resumeparser.extractedSkills')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {result.skills.technical.map(skill => (
-                        <span key={skill} className="px-3 py-1 rounded-lg bg-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium">
+                        <span key={skill} className="px-3 py-1 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-accent)] border border-[var(--color-primary)]/20 text-xs font-medium">
                           {skill}
                         </span>
                       ))}
@@ -254,12 +254,12 @@ export default function ResumeParserPage() {
                   </div>
                   <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
                     <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                       <Target className="w-4 h-4 text-yellow-400" />
+                       <Target className="w-4 h-4 text-orange-400" />
                        {t('resumeparser.missingSkills')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {result.missingSkills.map(skill => (
-                        <span key={skill} className="px-3 py-1 rounded-lg bg-yellow-400/10 text-yellow-500 text-xs font-medium">
+                        <span key={skill} className="px-3 py-1 rounded-lg bg-orange-400/10 text-orange-400 border border-orange-400/20 text-xs font-medium">
                           {skill}
                         </span>
                       ))}

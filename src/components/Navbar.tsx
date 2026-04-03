@@ -31,7 +31,7 @@ export default function Navbar() {
     ];
 
     return (
-        <header className="sticky top-0 z-50 w-full glass border-b border-[var(--color-border)]">
+        <header className="sticky top-0 z-50 w-full bg-[var(--color-background)] border-b border-[var(--color-border)]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-8">
@@ -67,7 +67,7 @@ export default function Navbar() {
 
                     <div className="flex items-center gap-4">
                         <LanguageSelector />
-                        
+
                         <Link
                             href="/login"
                             className="hidden sm:inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 font-bold"

@@ -104,8 +104,12 @@ export default function AIHirePage() {
             const data = await response.json();
 
             if (!response.ok) {
-                console.error('[Transcribe] Failed:', response.status, data.error, data.details);
-                return `ERROR: ${data.details || data.error || 'Unknown error'}`;
+                console.group('[Transcribe API Failed]');
+                console.error('Status:', response.status);
+                console.error('Error:', data.error);
+                console.error('Details:', data.details);
+                console.groupEnd();
+                return `ERROR: ${data.details || data.error || 'Transcription failed'}`;
             }
 
             return data.text || '';
@@ -200,31 +204,37 @@ export default function AIHirePage() {
                 audioStreamRef.current = null;
 
                 const audioBlob = new Blob(audioChunksRef.current, { type: recorderRef.current?.mimeType || 'audio/webm' });
-                console.log(`[Recorder] Recording stopped. Total chunks: ${audioChunksRef.current.length}, Total size: ${audioBlob.size} bytes`);
+                console.log(`[Recorder] Recording stopped. Total chunks: ${audioChunksRef.current.length}, Final size: ${audioBlob.size} bytes`);
                 audioChunksRef.current = [];
 
-                if (audioBlob.size < 2000) {
-                    setStatusText('Recording was too short or silent. Please speak clearly for a few seconds.');
+                if (audioBlob.size < 500) {
+                    setStatusText('Could not hear you. Please speak a bit louder or closer to the mic.');
                     setIsThinking(false);
                     return;
                 }
 
-                setStatusText(t('aihire.transcribing'));
+                setStatusText(t('aihire.transcribing') + '...');
                 setIsThinking(true);
 
                 const text = await transcribeAudio(audioBlob);
 
-                if (text && !text.startsWith('ERROR:')) {
+                // Filter out 'ghost' transcriptions (silence, dots, or very short noise)
+                const cleanText = (text || '').replace(/[.\s]+/g, '').trim();
+
+                if (text && !text.startsWith('ERROR:') && cleanText.length > 1) {
                     setStatusText('');
                     await sendToAI(text);
                 } else {
-                    const errorMsg = text.startsWith('ERROR:') ? text.replace('ERROR: ', '') : 'Could not understand. Please try again.';
-                    setStatusText(`Error: ${errorMsg}`);
+                    if (text?.startsWith('ERROR:')) {
+                        setStatusText(`Error: ${text.replace('ERROR: ', '')}`);
+                    } else {
+                        setStatusText('Could not hear you clearly. Please try again.');
+                    }
                     setIsThinking(false);
                 }
             };
 
-            recorder.start(1000); // Capture chunks every second
+            recorder.start(2000); // 2-second chunks provide better voice aggregation
             setIsRecording(true);
             setStatusText(t('aihire.startRecording'));
         } catch {
@@ -309,9 +319,9 @@ export default function AIHirePage() {
                     <div className="lg:col-span-3 flex flex-col gap-6 h-full">
 
                         {/* AI Interviewer Top Bar */}
-                        <div className={`glass p-6 rounded-3xl flex items-center gap-6 border transition-colors ${isSpeaking ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/50 shadow-[0_0_30px_rgba(79,70,229,0.15)]' : 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5'}`}>
+                        <div className={`glass p-6 rounded-3xl flex items-center gap-6 border transition-colors ${isSpeaking ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/50 shadow-[0_0_30px_rgba(220,20,60,0.15)]' : 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5'}`}>
                             <div className="relative">
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all ${isSpeaking ? 'bg-gradient-to-br from-[var(--color-primary)] to-indigo-400 border-white scale-110 shadow-lg shadow-[var(--color-primary)]/50' : 'bg-gradient-to-br from-indigo-500 to-purple-600 border-[var(--color-primary)]'}`}>
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all ${isSpeaking ? 'bg-gradient-to-br from-[var(--color-primary)] to-red-400 border-white scale-110 shadow-lg shadow-[var(--color-primary)]/50' : 'bg-gradient-to-br from-red-700 to-red-900 border-[var(--color-primary)]'}`}>
                                     <BrainCircuit className={`w-8 h-8 text-white ${isThinking ? 'animate-pulse' : ''}`} />
                                 </div>
                                 {isSpeaking && <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-black animate-ping" />}
@@ -404,7 +414,7 @@ export default function AIHirePage() {
                                             </div>
                                             <div className="w-full bg-black/50 rounded-full h-1.5 overflow-hidden">
                                                 <div
-                                                    className="bg-[var(--color-accent)] h-full rounded-full transition-all"
+                                                    className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] h-full rounded-full transition-all"
                                                     style={{ width: `${Math.min(messages.filter(m => m.role === 'user').length * 10, 100)}%` }}
                                                 ></div>
                                             </div>
