@@ -20,15 +20,11 @@ export default function Navbar() {
     const { t } = useLanguage();
 
     const navLinks = [
-        { name: t('navbar.verify'), href: '/verify' },
-        { name: t('navbar.matchai'), href: '/match-ai' },
-        { name: t('navbar.mockprep'), href: '/mock-prep' },
-        { name: t('navbar.aihire'), href: '/ai-hire' },
         { name: t('navbar.portfolio'), href: '/portfolio' },
-        { name: t('navbar.roadmap'), href: '/roadmap' },
-        { name: t('navbar.resumeparser'), href: '/resume-parser' },
-        { name: t('navbar.quickhire'), href: '/quick-hire' },
         { name: t('navbar.jobscout'), href: '/job-scout' },
+        { name: t('navbar.aihire'), href: '/ai-hire' },
+        { name: t('navbar.verify'), href: '/verify' },
+        { name: t('navbar.roadmap'), href: '/roadmap' },
     ];
 
     return (

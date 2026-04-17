@@ -31,38 +31,39 @@ export async function POST(req: Request) {
 
         const targetLanguage = languageMap[language] || 'English';
 
-        const prompt = `You are an Expert Career Mentor and Senior Engineer specializing in ${domain}.
-Provide a highly detailed, technical, and actionable deep-dive for the following learning phase.
+        const prompt = `You are a Senior Engineer specializing in ${domain}.
+Provide a structured "Mastery Pack" for this learning phase in ${targetLanguage}.
 
-**IMPORTANT: You MUST provide the entire response in ${targetLanguage}.**
-**CRITICAL: Do NOT include English technical terms in brackets. Use the appropriate technical terminology directly in the target language script.**
-
-**Domain:** ${domain}
 **Phase:** ${phaseTitle}
-**Current Description:** ${phaseDescription}
+**Context:** ${phaseDescription}
 
-Your documentation must be extremely comprehensive and follow this structure:
-1. **Core Technical Concepts**: Explained with high granularity.
-2. **2026 Industry Implementation Standards**: How top-tier companies (FAANG/OpenAI/High-growth startups) currently use this.
-3. **Step-by-Step Practical Roadmap**: 5-7 highly specific sub-tasks to master this phase.
-4. **Deep-Dive Tooling**: Specific libraries, versions, and configurations to explore.
-5. **Interview Blueprint**: 3 advanced technical interview questions related to this phase, with sample high-quality answers.
+**You MUST return ONLY a valid JSON object with this exact structure:**
+{
+  "summary": "A 1-2 sentence high-level overview of why this phase is crucial.",
+  "checklist": ["Task 1", "Task 2", "Task 3", "Task 4"],
+  "industryInsight": "One elite sentence on how top companies (FAANG/OpenAI) use this in 2026.",
+  "tooling": [
+    {"name": "ToolName", "purpose": "Short purpose"},
+    {"name": "ToolName", "purpose": "Short purpose"}
+  ],
+  "interview": {
+    "question": "One high-impact technical interview question.",
+    "answer": "A concise, 'Senior-level' sample answer."
+  }
+}
 
-Formatting requirements:
-- Use clean Markdown.
-- Use bold headers.
-- Use bullet points for readability.
-- Avoid generic filler text.
-- Keep the tone professional, encouraging, and elite.`;
+**CRITICAL: Use ONLY ${targetLanguage} for all values.**
+**CRITICAL: NO Markdown formatting, NO quotes outside JSON, NO conversational text.**`;
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 { role: 'system', content: 'You are a career-focused technical documentation engine.' },
                 { role: 'user', content: prompt }
             ],
-            model: 'llama-3.3-70b-versatile',
-            temperature: 0.7,
-            max_tokens: 2000,
+            model: 'llama-3.1-8b-instant',
+            temperature: 0.5,
+            max_tokens: 1000,
+            response_format: { type: "json_object" },
             top_p: 1,
             stream: false,
         });

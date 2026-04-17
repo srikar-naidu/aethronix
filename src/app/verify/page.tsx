@@ -5,12 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ShieldCheck, Play, CheckCircle2, AlertTriangle, Loader2,
     Code2, Clock, Award, ChevronRight, Sparkles, Zap,
-    BarChart3, Target, ArrowLeft, Terminal, Send, Trophy
+    BarChart3, Target, ArrowLeft, Terminal, Send, Trophy,
+    Binary, Cpu, Globe, Layout, Layers, Database, Palette,
+    Lock, Cloud, Smartphone, Settings, BrainCircuit, X, ArrowRight, Route
 } from 'lucide-react';
-import {
-    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-    ResponsiveContainer, Tooltip
-} from 'recharts';
+
 
 // ===== Types =====
 interface DSAProblem {
@@ -30,15 +29,46 @@ interface EvalResult {
     optimizations: string[];
     overallScore: number;
     percentile: number;
+    testCaseResults?: { input: string; output: string; expected: string; passed: boolean }[];
 }
 
-// ===== Constants =====
-const INITIAL_SKILLS_DATA = [
-    { subject: 'React', A: 40, fullMark: 100 },
-    { subject: 'TypeScript', A: 55, fullMark: 100 },
-    { subject: 'Node.js', A: 30, fullMark: 100 },
-    { subject: 'CSS/UI', A: 65, fullMark: 100 },
-    { subject: 'System Design', A: 20, fullMark: 100 },
+interface MCQ {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+}
+
+interface AssessmentReport {
+    summary: string;
+    breakdown: {
+        question: string;
+        isCorrect: boolean;
+        feedback: string;
+        docsLink: string;
+    }[];
+    lackingSkills: string[];
+    verdict: string;
+}
+
+interface Domain {
+    id: string;
+    title: string;
+    icon: any;
+    color: string;
+    description: string;
+}
+
+const DOMAINS: Domain[] = [
+    { id: 'frontend', title: 'Frontend Engineering', icon: Layout, color: 'text-blue-400', description: 'React, Next.js, and Modern CSS' },
+    { id: 'backend', title: 'Backend Engineering', icon: Database, color: 'text-green-400', description: 'Node.js, Go, and System Design' },
+    { id: 'dsa', title: 'DSA & Algorithmic Logic', icon: Binary, color: 'text-[var(--color-primary)]', description: 'Problem Solving & Efficiency' },
+    { id: 'uiux', title: 'UI/UX Design', icon: Palette, color: 'text-pink-400', description: 'Figma, Design Systems & Motion' },
+    { id: 'data', title: 'Data Science & ML', icon: BrainCircuit, color: 'text-purple-400', description: 'ML Models, Python & Data Analysis' },
+    { id: 'cyber', title: 'Cybersecurity', icon: Lock, color: 'text-red-400', description: 'Pentesting & Network Security' },
+    { id: 'cloud', title: 'Cloud Architecture', icon: Cloud, color: 'text-cyan-400', description: 'AWS, GCP & Infinite Scaling' },
+    { id: 'devops', title: 'DevOps & CI/CD', icon: Settings, color: 'text-orange-400', description: 'Automation, K8s & Infrastructure' },
+    { id: 'ai', title: 'AI/LLM Engineering', icon: Zap, color: 'text-yellow-400', description: 'RAG, Fine-tuning & Agentic AI' },
 ];
 
 const DSA_TOPICS = ['Arrays', 'Strings', 'Linked Lists', 'Trees', 'Dynamic Programming', 'Graphs', 'Sorting', 'Binary Search'];
@@ -104,10 +134,46 @@ export default function VerifyPage() {
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }, [isAssessmentStarted, evaluationResult]);
 
+    // MCQ state
+    const [mcqs, setMcqs] = useState<MCQ[]>([]);
+    const [currentMCQIdx, setCurrentMCQIdx] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<number[]>([]);
+    const [isFinished, setIsFinished] = useState(false);
+    const [isFetchingQuiz, setIsFetchingQuiz] = useState(false);
+    const [finalScore, setFinalScore] = useState(0);
+    const [assessmentReport, setAssessmentReport] = useState<AssessmentReport | null>(null);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
     const formatTime = (s: number) => {
         const m = Math.floor(s / 60);
         const sec = s % 60;
         return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    };
+
+    // Fetch MCQs for non-DSA domains
+    const fetchQuiz = async (selectedDomainId: string) => {
+        setIsFetchingQuiz(true);
+        setStatus('assessing');
+        setMcqs([]);
+        setCurrentMCQIdx(0);
+        setUserAnswers([]);
+        setIsFinished(false);
+
+        try {
+            const res = await fetch('/api/verify/assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domainId: selectedDomainId }),
+            });
+            const data = await res.json();
+            if (data.mcqs) {
+                setMcqs(data.mcqs);
+            }
+        } catch (error) {
+            console.error('Failed to fetch quiz:', error);
+        } finally {
+            setIsFetchingQuiz(false);
+        }
     };
 
     // Fetch DSA problem from API
@@ -163,52 +229,95 @@ export default function VerifyPage() {
         }, 1500);
     };
 
-    // Submit & Evaluate
-    const handleSubmit = () => {
+    // Submit & Evaluate DSA
+    const handleSubmit = async () => {
         setIsEvaluating(true);
         setRunOutput('');
-        setTimeout(() => {
-            const score = Math.floor(Math.random() * 30) + 70; // 70-100
-            const result: EvalResult = {
-                correctness: Math.min(score + 5, 100),
-                timeComplexity: score > 85 ? 'O(n) — Optimal' : 'O(n²) — Can be improved',
-                spaceComplexity: score > 80 ? 'O(1) — Excellent' : 'O(n) — Acceptable',
-                edgeCases: Math.floor(Math.random() * 20) + 80,
-                optimizations: score > 85
-                    ? ['Great use of hash maps for O(1) lookups', 'Clean edge case handling']
-                    : ['Consider using a hash map for O(n) solution', 'Add null/empty input checks', 'Handle duplicate values'],
-                overallScore: score,
-                percentile: Math.floor(Math.random() * 15) + 80,
-            };
+        
+        try {
+            const res = await fetch('/api/verify/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problem: currentProblem,
+                    code: userCode,
+                    language: selectedLanguage
+                }),
+            });
+            const result = await res.json();
             setEvaluationResult(result);
-            setIsEvaluating(false);
-            if (timerRef.current) clearInterval(timerRef.current);
 
-            if (score >= PASS_THRESHOLD) {
+            if (result.overallScore >= PASS_THRESHOLD) {
                 setVerifiedSkills(prev => [...new Set([...prev, dsaTopic])]);
             }
-        }, 2500);
+        } catch (error) {
+            console.error("Evaluation failed:", error);
+            setRunOutput("Evaluation failed. Please try again.");
+        } finally {
+            setIsEvaluating(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+    };
+
+    const handleFinishQuiz = () => {
+        let correctCount = 0;
+        mcqs.forEach((q, i) => {
+            if (userAnswers[i] === q.correctIndex) correctCount++;
+        });
+        const score = Math.round((correctCount / mcqs.length) * 100);
+        setFinalScore(score);
+        setIsFinished(true);
+        setStatus('passed'); 
+        generateReport(score);
+    };
+
+    const generateReport = async (score: number) => {
+        setIsGeneratingReport(true);
+        try {
+            const results = mcqs.map((q, i) => ({
+                question: q.question,
+                userAnswer: q.options[userAnswers[i] || 0],
+                correctAnswer: q.options[q.correctIndex],
+                isCorrect: userAnswers[i] === q.correctIndex,
+                explanation: q.explanation
+            }));
+
+            const res = await fetch('/api/verify/report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain, results })
+            });
+            const data = await res.json();
+            setAssessmentReport(data);
+        } catch (error) {
+            console.error("Report generation failed:", error);
+        } finally {
+            setIsGeneratingReport(false);
+        }
     };
 
     // Back to domain selection
     const handleBackToDomains = () => {
         setIsDSAMode(false);
+        setStatus('idle');
         setIsAssessmentStarted(false);
         setCurrentProblem(null);
         setEvaluationResult(null);
         setRunOutput('');
         setUserCode(STARTER_CODE.python);
+        setMcqs([]);
+        setIsFinished(false);
         if (timerRef.current) clearInterval(timerRef.current);
     };
 
     // Existing assessment start
-    const startAssessment = () => {
-        if (domain === 'dsa') {
+    const startAssessment = (selectedId: string) => {
+        setDomain(selectedId);
+        if (selectedId === 'dsa') {
             setIsDSAMode(true);
             return;
         }
-        setStatus('assessing');
-        setTimeout(() => setStatus('passed'), 3000);
+        fetchQuiz(selectedId);
     };
 
     // ===== DSA WORKSPACE RENDER =====
@@ -490,137 +599,247 @@ export default function VerifyPage() {
                     </p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 gap-12">
 
-                    {/* Assessment Panel */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="glass rounded-3xl p-8 border border-[var(--color-border)] relative overflow-hidden"
-                    >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl -mr-32 -mt-32" />
-
-                        <h2 className="text-2xl font-bold mb-6 relative z-10">Start Assessment</h2>
-
-                        <div className="space-y-6 relative z-10">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-[var(--color-muted)]">Select Domain</label>
-                                <select
-                                    value={domain}
-                                    onChange={(e) => setDomain(e.target.value)}
-                                    disabled={status !== 'idle'}
-                                    className="w-full bg-black/30 border border-[var(--color-border)] rounded-xl p-4 text-white focus:outline-none focus:border-[var(--color-primary)] appearance-none cursor-pointer"
-                                >
-                                    <option value="frontend">Frontend Engineering (React/Next.js)</option>
-                                    <option value="backend">Backend Engineering (Node/Python)</option>
-                                    <option value="data">Data Science &amp; ML</option>
-                                    <option value="design">UI/UX Design</option>
-                                    <option value="dsa">⚡ DSA / Coding Assessment</option>
-                                </select>
-                            </div>
-
-                            {domain === 'dsa' && status === 'idle' && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                                    className="p-4 rounded-xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-sm text-gray-300">
-                                    <Code2 className="w-5 h-5 text-[var(--color-primary)] inline mr-2" />
-                                    This will open a <strong className="text-white">full coding workspace</strong> with AI-generated problems, a code editor, and real-time evaluation.
-                                </motion.div>
-                            )}
-
-                            <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex gap-4 items-start">
-                                <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
-                                <div className="text-sm text-orange-200/80">
-                                    <p className="font-medium text-orange-400 mb-1">Assessment Rules:</p>
-                                    <ul className="list-disc pl-4 space-y-1">
-                                        <li>45 minutes time limit</li>
-                                        <li>Proctored via AI (Camera/Mic required)</li>
-                                        <li>No tab switching allowed</li>
-                                    </ul>
+                    {/* MCQ Assessment View */}
+                    {status === 'assessing' && mcqs.length > 0 && !isFinished && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-2 glass rounded-3xl p-8 border border-[var(--color-border)]">
+                            <div className="flex justify-between items-center mb-8">
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-2xl font-bold text-white">Question {currentMCQIdx + 1} of {mcqs.length}</h2>
+                                    <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-bold border border-[var(--color-primary)]/20 uppercase">
+                                        {domain} Engineering
+                                    </span>
+                                </div>
+                                <div className="text-xl font-mono font-bold text-white flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-[var(--color-primary)]" /> {formatTime(timeLeft)}
                                 </div>
                             </div>
 
-                            {status === 'idle' && (
+                            <div className="space-y-6">
+                                <p className="text-xl text-white font-medium leading-relaxed">{mcqs[currentMCQIdx].question}</p>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {mcqs[currentMCQIdx].options.map((option, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => {
+                                                const newAnswers = [...userAnswers];
+                                                newAnswers[currentMCQIdx] = i;
+                                                setUserAnswers(newAnswers);
+                                            }}
+                                            className={`p-6 rounded-2xl border text-left transition-all ${userAnswers[currentMCQIdx] === i ? 'bg-[var(--color-primary)]/20 border-[var(--color-primary)]/50 text-white font-bold' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/[0.08]'}`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-sm ${userAnswers[currentMCQIdx] === i ? 'bg-[var(--color-primary)] border-transparent text-white' : 'border-white/20'}`}>
+                                                    {String.fromCharCode(65 + i)}
+                                                </div>
+                                                {option}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mt-12 flex justify-between items-center border-t border-white/5 pt-8">
                                 <button
-                                    onClick={startAssessment}
-                                    className="w-full py-4 rounded-xl bg-[var(--color-primary)] text-white font-bold text-lg hover:bg-[var(--color-primary)]/90 transition-all flex items-center justify-center gap-2 group"
+                                    onClick={() => setCurrentMCQIdx(prev => Math.max(0, prev - 1))}
+                                    disabled={currentMCQIdx === 0}
+                                    className="px-6 py-2 rounded-xl text-gray-400 hover:text-white transition disabled:opacity-0"
                                 >
-                                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                    {domain === 'dsa' ? 'Open DSA Workspace' : 'Begin Test'}
+                                    Previous
                                 </button>
-                            )}
-
-                            {status === 'assessing' && (
-                                <div className="w-full py-4 rounded-xl bg-[var(--color-border)] text-white font-bold text-lg flex items-center justify-center gap-3">
-                                    <Loader2 className="w-5 h-5 animate-spin text-[var(--color-primary)]" />
-                                    Evaluating Skills with Groq AI...
-                                </div>
-                            )}
-
-                            {status === 'passed' && (
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="w-full py-4 rounded-xl bg-[var(--color-accent)]/20 border border-[var(--color-accent)] text-[var(--color-accent)] font-bold text-lg flex items-center justify-center gap-2"
+                                <button
+                                    onClick={() => {
+                                    if (currentMCQIdx < mcqs.length - 1) {
+                                            setCurrentMCQIdx(prev => prev + 1);
+                                        } else {
+                                            handleFinishQuiz();
+                                        }
+                                    }}
+                                    disabled={userAnswers[currentMCQIdx] === undefined}
+                                    className="px-10 py-4 rounded-2xl bg-[var(--color-primary)] text-white font-bold hover:scale-105 transition-all disabled:opacity-50"
                                 >
-                                    <CheckCircle2 className="w-6 h-6" />
-                                    Assessment Passed — Badge Awarded!
-                                </motion.div>
-                            )}
-                        </div>
-                    </motion.div>
+                                    {currentMCQIdx === mcqs.length - 1 ? 'Finish Assessment' : 'Next Question'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
 
-                    {/* Radar Chart Panel */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="glass rounded-3xl p-8 border border-[var(--color-border)] flex flex-col"
-                    >
-                        <h2 className="text-2xl font-bold mb-2">Skill Profile</h2>
-                        <p className="text-[var(--color-muted)] mb-8">Verified competency across domains</p>
-
-                        <div className="flex-1 min-h-[300px] w-full relative">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={status === 'passed' ? [
-                                    { subject: 'React', A: 92, fullMark: 100 },
-                                    { subject: 'TypeScript', A: 88, fullMark: 100 },
-                                    { subject: 'Node.js', A: 75, fullMark: 100 },
-                                    { subject: 'CSS/UI', A: 95, fullMark: 100 },
-                                    { subject: 'System Design', A: 60, fullMark: 100 },
-                                ] : INITIAL_SKILLS_DATA}>
-                                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                    <Radar
-                                        name="Skill Level"
-                                        dataKey="A"
-                                        stroke={status === 'passed' ? "#22C55E" : "#4F46E5"}
-                                        fill={status === 'passed' ? "#22C55E" : "#4F46E5"}
-                                        fillOpacity={0.3}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: '#0B0F17', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                                        itemStyle={{ color: '#E5E7EB' }}
-                                    />
-                                </RadarChart>
-                            </ResponsiveContainer>
-
-                            {status === 'passed' && (
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                                    <motion.div
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ type: 'spring', bounce: 0.5 }}
-                                        className="w-24 h-24 rounded-full bg-[var(--color-accent)]/20 border-2 border-[var(--color-accent)] flex items-center justify-center backdrop-blur-sm"
+                    {/* Domain Grid View */}
+                    {status === 'idle' && (
+                        <div className="lg:col-span-2 space-y-8">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                <Target className="w-6 h-6 text-[var(--color-primary)]" />
+                                Select Your Domain
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {DOMAINS.map((d) => (
+                                    <motion.button
+                                        key={d.id}
+                                        whileHover={{ y: -8, scale: 1.02 }}
+                                        onClick={() => startAssessment(d.id)}
+                                        className="group relative text-left"
                                     >
-                                        <div className="text-center">
-                                            <div className="text-2xl font-bold text-white">Top 5%</div>
-                                            <div className="text-[10px] text-[var(--color-accent)] font-bold uppercase tracking-wider">Frontend</div>
+                                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/20 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
+                                        <div className="relative glass p-6 rounded-3xl border border-white/5 group-hover:border-[var(--color-primary)]/40 transition-colors h-full flex flex-col">
+                                            <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 group-hover:bg-[var(--color-primary)]/10 transition-colors ${d.color}`}>
+                                                <d.icon className="w-7 h-7" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-2">{d.title}</h3>
+                                            <p className="text-sm text-gray-400 leading-relaxed mb-6 flex-1">{d.description}</p>
+                                            <div className="flex items-center text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest gap-2">
+                                                Begin Assessment <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
                                         </div>
-                                    </motion.div>
-                                </div>
-                            )}
+                                    </motion.button>
+                                ))}
+                            </div>
                         </div>
-                    </motion.div>
+                    )}
+
+                    {/* Proctored Loading for non-MCQ states */}
+                    {status === 'assessing' && mcqs.length === 0 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="lg:col-span-2 flex flex-col items-center justify-center py-24 glass rounded-3xl border border-white/5">
+                            <div className="relative w-24 h-24 mb-8">
+                                <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]/20" />
+                                <div className="absolute inset-0 rounded-full border-t-2 border-[var(--color-primary)] animate-spin" />
+                                <BrainCircuit className="absolute inset-0 m-auto w-10 h-10 text-[var(--color-primary)] animate-pulse" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Generating Personalized Quiz</h2>
+                            <p className="text-gray-400">Our AI is sourcing elite problems for your domain...</p>
+                        </motion.div>
+                    )}
+
+                    {/* Result View (Non-DSA) */}
+                    {status === 'passed' && mcqs.length > 0 && (
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="lg:col-span-2 space-y-8">
+                            
+                            {/* Score Overview Card */}
+                            <div className="glass rounded-3xl p-12 border border-[var(--color-accent)]/30 text-center flex flex-col items-center">
+                                <div className="w-24 h-24 rounded-full bg-[var(--color-accent)]/20 border-2 border-[var(--color-accent)] flex items-center justify-center mb-8 shadow-lg shadow-[var(--color-accent)]/30">
+                                    <Trophy className="w-12 h-12 text-[var(--color-accent)]" />
+                                </div>
+                                <h2 className="text-4xl font-bold text-white mb-4">Verification Successful!</h2>
+                                <p className="text-xl text-gray-400 mb-10 max-w-2xl">
+                                    You have demonstrated proficiency in <span className="text-white font-bold">{DOMAINS.find(d=>d.id===domain)?.title}</span>. 
+                                    Your verified badge is now active on your global profile.
+                                </p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl">
+                                    {[
+                                        { label: 'Domain Score', value: `${finalScore}%` },
+                                        { label: 'Accuracy', value: '100%' },
+                                        { label: 'Elite Percentile', value: `Top ${Math.max(2, 100 - finalScore)}%` },
+                                        { label: 'Skill Badge', value: finalScore >= 60 ? 'Active' : 'Pending' },
+                                    ].map((stat, i) => (
+                                        <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                                            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">{stat.label}</p>
+                                            <p className={`text-2xl font-bold ${i === 0 ? 'text-[var(--color-accent)]' : 'text-white'}`}>{stat.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Detailed Report Section */}
+                            <div className="glass rounded-3xl border border-white/5 overflow-hidden">
+                                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+                                            <BarChart3 className="w-6 h-6 text-purple-400" />
+                                            Mastery Deep-Dive
+                                        </h3>
+                                        <p className="text-[var(--color-muted)] text-sm font-medium uppercase tracking-widest">Powered by RUBIX AI Report Engine</p>
+                                    </div>
+                                    {isGeneratingReport && <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analyzing Performance...</div>}
+                                </div>
+
+                                <div className="p-8 space-y-10">
+                                    {assessmentReport && assessmentReport.summary ? (
+                                        <>
+                                            {/* AI Summary */}
+                                            <div className="p-6 rounded-2xl bg-purple-500/5 border border-purple-500/20">
+                                                <h4 className="font-bold text-white mb-3 flex items-center gap-2 text-lg">
+                                                    <BrainCircuit className="w-5 h-5 text-purple-400" /> 
+                                                    Analytical Summary
+                                                </h4>
+                                                <p className="text-gray-300 leading-relaxed text-lg italic bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                                                    "{assessmentReport.summary}"
+                                                </p>
+                                            </div>
+
+                                            {/* Question Breakdown */}
+                                            <div className="space-y-6">
+                                                <h4 className="font-bold text-gray-400 uppercase tracking-widest text-xs">Technical Drill-Down</h4>
+                                                {assessmentReport?.breakdown?.map((item, i) => (
+                                                    <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 relative overflow-hidden group">
+                                                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${item.isCorrect ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                        <div className="flex flex-col gap-4">
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <h5 className="font-bold text-white text-lg leading-snug">{item.question}</h5>
+                                                                {item.isCorrect ? <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" /> : <X className="w-6 h-6 text-red-500 shrink-0" />}
+                                                            </div>
+                                                            <p className="text-gray-400 leading-relaxed text-sm">{item.feedback}</p>
+                                                            <a href={item.docsLink} target="_blank" rel="noopener noreferrer" 
+                                                               className="inline-flex items-center gap-2 text-[var(--color-primary)] font-bold text-xs uppercase tracking-widest hover:translate-x-1 transition-transform">
+                                                                View Official Documentation <ArrowRight className="w-4 h-4" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Gaps & Roadmap Action */}
+                                            <div className="p-8 rounded-2xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 flex flex-col md:flex-row items-center justify-between gap-8">
+                                                <div className="space-y-4 text-center md:text-left">
+                                                    <h4 className="text-2xl font-bold text-white">Focus Areas for Mastery</h4>
+                                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                                        {assessmentReport?.lackingSkills?.map(skill => (
+                                                            <span key={skill} className="px-4 py-2 rounded-xl bg-black/40 text-[var(--color-primary)] font-bold text-sm border border-[var(--color-primary)]/30">
+                                                                {skill}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        const domainMap: Record<string, string> = {
+                                                            'frontend': 'Frontend Engineer',
+                                                            'backend': 'Backend Engineer',
+                                                            'dsa': 'Fullstack Developer',
+                                                            'uiux': 'UI/UX Designer',
+                                                            'data': 'Data Scientist',
+                                                            'cyber': 'Cybersecurity Analyst',
+                                                            'cloud': 'Cloud Architect',
+                                                            'devops': 'DevOps Engineer',
+                                                            'ai': 'AI/ML Engineer'
+                                                        };
+                                                        const targetDomain = domainMap[domain] || domain;
+                                                        window.location.href = `/roadmap?domain=${encodeURIComponent(targetDomain)}`;
+                                                    }}
+                                                    className="px-8 py-5 rounded-2xl bg-[var(--color-primary)] text-white font-bold text-lg hover:scale-105 transition-all shadow-xl shadow-[var(--color-primary)]/20 flex items-center gap-3 whitespace-nowrap"
+                                                >
+                                                    <Route className="w-6 h-6" /> Generate Roadmap for My Gaps
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="py-20 text-center space-y-6">
+                                            <div className="relative w-16 h-16 mx-auto">
+                                                <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]/20" />
+                                                <div className="absolute inset-0 rounded-full border-t-2 border-[var(--color-primary)] animate-spin" />
+                                            </div>
+                                            <p className="text-gray-400 font-medium font-mono text-sm animate-pulse tracking-[0.2em] uppercase">Generating Master Analysis...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button onClick={handleBackToDomains} className="px-10 py-4 rounded-xl text-gray-400 hover:text-white transition font-bold mx-auto flex items-center gap-2">
+                                <ArrowLeft className="w-4 h-4" /> Back to Assessment Center
+                            </button>
+                        </motion.div>
+                    )}
+
+
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@ import Groq from 'groq-sdk';
 
 export async function POST(req: Request) {
     try {
-        const apiKey = process.env.GROQ_API_KEY;
+        const apiKey = process.env.GROQ_VERIFY_API_KEY;
         const groq = new Groq({ apiKey });
 
         const { topic, difficulty } = await req.json();
@@ -17,10 +17,17 @@ export async function POST(req: Request) {
   "title": "Problem Title",
   "difficulty": "${difficulty || 'Medium'}",
   "topic": "${topic || 'Arrays'}",
-  "description": "Full problem description with clear explanation",
-  "constraints": ["constraint 1", "constraint 2", "constraint 3"],
-  "examples": ["Input: nums = [2,7,11,15], target = 9\\nOutput: [0,1]\\nExplanation: Because nums[0] + nums[1] == 9", "Input: nums = [3,2,4], target = 6\\nOutput: [1,2]"]
-}`
+  "description": "Full problem description",
+  "constraints": ["constraint 1"],
+  "examples": ["Input: ...\\nOutput: ..."],
+  "testCases": [
+    {"input": "specific input 1", "expected": "specific output 1"},
+    {"input": "specific input 2", "expected": "specific output 2"},
+    {"input": "edge case input", "expected": "edge case output"}
+  ]
+}
+
+**The testCases should NOT be shown to the user. They are for the AI-Judge.**`
                 },
                 {
                     role: 'user',
@@ -51,9 +58,14 @@ export async function POST(req: Request) {
                 title: "Two Sum",
                 difficulty: difficulty || "Medium",
                 topic: topic || "Arrays",
-                description: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
-                constraints: ["2 <= nums.length <= 10^4", "-10^9 <= nums[i] <= 10^9", "-10^9 <= target <= 10^9", "Only one valid answer exists."],
-                examples: ["Input: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplanation: Because nums[0] + nums[1] == 9, we return [0, 1].", "Input: nums = [3,2,4], target = 6\nOutput: [1,2]"]
+                description: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+                constraints: ["2 <= nums.length <= 10^4", "Only one valid answer exists."],
+                examples: ["Input: [2,7,11,15], 9 -> Output: [0,1]"],
+                testCases: [
+                    { input: "[2,7,11,15], 9", expected: "[0,1]" },
+                    { input: "[3,2,4], 6", expected: "[1,2]" },
+                    { input: "[3,3], 6", expected: "[0,1]" }
+                ]
             };
         }
 

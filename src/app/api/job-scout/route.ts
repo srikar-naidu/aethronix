@@ -1,18 +1,69 @@
 import { NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
 
+async function fetchJobs(query: string) {
+    const apiKey = (process.env.JSEARCH_API_KEY || process.env.JSEARCH_RAPIDAPI_KEY || '').trim();
+    if (!apiKey) throw new Error("Missing JSearch API Key (check .env and restart server)");
+
+    const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=1`;
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`JSearch API failed. Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data || [];
+}
+
+async function fetchFromGroq(prompt: string, expectJson: boolean = false, isQueryGen: boolean = false) {
+    const keys = [
+        process.env.GROQ_JOBSCOUT_API_KEY,
+        process.env.GROQ_RESUME_API_KEY,
+        process.env.GROQ_HIRE_API_KEY,
+        process.env.GROQ_ROADMAP_API_KEY
+    ].map(k => (k || '').trim()).filter(Boolean);
+
+    if (keys.length === 0) throw new Error("Missing Groq API Keys");
+
+    let lastError = null;
+    for (const apiKey of keys) {
+        try {
+            console.log(`[Groq] Attempting with key: ${apiKey.substring(0, 8)}...`);
+            const groq = new Groq({ apiKey });
+            const completion = await groq.chat.completions.create({
+                model: 'llama-3.1-8b-instant',
+                messages: [{ role: 'user', content: prompt }],
+                response_format: expectJson ? { type: 'json_object' } : undefined,
+                temperature: isQueryGen ? 0.0 : 0.2,
+                max_tokens: isQueryGen ? 50 : 4096,
+            });
+            return completion.choices[0].message.content;
+        } catch (e: any) {
+            lastError = e;
+            // If it's a rate limit (429) or overload (503), try next key
+            if (e.status === 429 || e.status === 503) {
+                console.warn(`[Groq] Rate limited on key ${apiKey.substring(0, 8)}. Rotating...`);
+                continue;
+            }
+            throw e; // For other errors (auth, etc.), throw immediately
+        }
+    }
+    throw lastError || new Error("All Groq keys failed");
+}
+
 export async function POST(req: Request) {
     try {
-        const apiKey = (process.env.GROQ_RESUME_API_KEY || '').trim();
-        if (!apiKey) {
-            return NextResponse.json({ error: 'Server configuration error: missing GROQ API Key' }, { status: 500 });
-        }
-
-        const groq = new Groq({ apiKey });
         const body = await req.json();
         const { action } = body;
 
-        // ────────── ACTION: SEARCH JOBS ──────────
+        // ────────── ACTION: SEARCH JOBS (JSEARCH PIPELINE) ──────────
         if (action === 'search') {
             const { candidateProfile, preferences } = body;
 
@@ -20,84 +71,132 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'Candidate profile is required' }, { status: 400 });
             }
 
-            const searchPrompt = `
-You are an elite AI Job Scout Agent that scans job portals (LinkedIn, Naukri, Indeed, Glassdoor, AngelList, Wellfound) and finds the best-fit jobs for a candidate.
+            console.log("JobScout: Building query...");
+            const queryPrompt = `Generate exactly 1 short job search query (e.g. "React Developer in Hyderabad") using profile and location. NO quotes, NO extra words.\nLocation: ${preferences?.location || 'Any'}\nProfile: ${candidateProfile.substring(0, 200)}`;
+            let finalQuery = "software developer";
+            try {
+                const rawGen = await fetchFromGroq(queryPrompt, false, true) || "software developer";
+                finalQuery = rawGen.replace(/["']/g, '').trim();
+            } catch(e) {
+                console.error("Query generation failed, using default:", e);
+            }
+            
+            // 🔥 Step 1: Fetch real jobs
+            console.log(`[Job Scout] 🔍 Scraping jobs for: "${finalQuery}"`);
+            const jobs = await fetchJobs(finalQuery);
+            console.log(`[Job Scout] ✅ JSearch returned ${jobs?.length || 0} real jobs.`);
 
-CANDIDATE PROFILE:
-"""
-${candidateProfile}
-"""
+            if (!jobs || jobs.length === 0) {
+                 return NextResponse.json({
+                    candidate_summary: { detected_role: finalQuery, experience_level: "Unknown", primary_skills: [], secondary_skills: [], estimated_market_value: "Unknown" },
+                    jobs: []
+                 });
+            }
 
-PREFERENCES:
-- Desired Salary Range: ${preferences?.salaryRange || 'Any'}
-- Preferred Location: ${preferences?.location || 'Any (Remote preferred)'}
-- Work Mode: ${preferences?.workMode || 'Any'}
-- Experience Level: ${preferences?.experienceLevel || 'Auto-detect from profile'}
+            // 🔥 Step 2: Clean jobs
+            const cleanedJobs = jobs.slice(0, 4).map((job: any, index: number) => ({
+                id: index + 1,
+                title: job.job_title,
+                company: job.employer_name,
+                apply_url: job.job_apply_link,
+                location: `${job.job_city || ''}, ${job.job_state || ''}`.replace(/^,\s|,([^,]*)$/g, '').trim() || "Remote",
+                description: job.job_description?.slice(0, 200)
+            }));
 
-YOUR MISSION:
-1. Analyze the candidate's skills, experience depth, project complexity, and career trajectory
-2. Generate 8 REALISTIC job listings that would actually exist on major job portals right now
-3. Score each job based on: skill match, salary fit, experience alignment, growth potential
-4. Be BRUTALLY HONEST about match scores — don't inflate
-5. Include a mix of: perfect matches, stretch roles, and safe bets
-6. If the candidate has fewer years than required but their projects demonstrate equivalent skill depth, note this as "experience_compensated": true
+            // 🔥 Step 3: Send to GROQ
+            const prompt = `
+Resume:
+${candidateProfile.substring(0, 1500)}
 
-CRITICAL RULES:
-- Jobs MUST be realistic (real company types, real salary ranges for India/global market)
-- Include a mix of startups, mid-size, and large companies
-- Salary ranges must be realistic for the role and location
-- Tech stacks must be realistic combinations
-- Don't just match keywords — understand skill depth
+Jobs:
+${JSON.stringify(cleanedJobs)}
+
+IMPORTANT:
+Only use provided jobs. Map the 'apply_url' exactly from the Jobs data provided above.
+Analyze and suggest best matches strictly in the JSON format requested.
+Calculate 'match_score' accurately.
 
 OUTPUT FORMAT (STRICT JSON):
 {
   "candidate_summary": {
-    "detected_role": "string (e.g., 'Full Stack Developer')",
-    "experience_level": "string (junior/mid/senior)",
+    "detected_role": "string",
+    "experience_level": "string",
     "primary_skills": ["string"],
     "secondary_skills": ["string"],
-    "estimated_market_value": "string (salary range)"
+    "estimated_market_value": "string"
   },
   "jobs": [
     {
-      "id": "number (1-8)",
+      "id": "number",
       "title": "string",
       "company": "string",
-      "company_type": "string (startup/mid-size/enterprise/mnc)",
+      "apply_url": "string",
+      "company_type": "string",
       "location": "string",
-      "work_mode": "string (remote/hybrid/onsite)",
+      "work_mode": "string",
       "salary_range": "string",
       "experience_required": "string",
-      "posted_ago": "string (e.g., '2 days ago')",
+      "posted_ago": "string",
       "applicants": "number",
       "tech_stack": ["string"],
-      "key_requirements": ["string (top 4-5 requirements)"],
-      "match_score": "number (0-100, be honest)",
-      "match_reasoning": "string (1-2 sentences why this score)",
-      "skill_overlap": ["string (skills candidate HAS that job needs)"],
-      "skill_gaps": ["string (skills candidate is MISSING)"],
-      "experience_compensated": "boolean (true if projects prove equivalent depth despite fewer years)",
-      "compensation_note": "string (explanation if experience_compensated is true, empty otherwise)",
+      "key_requirements": ["string"],
+      "match_score": "number",
+      "match_reasoning": "string",
+      "skill_overlap": ["string"],
+      "skill_gaps": ["string"],
+      "experience_compensated": "boolean",
+      "compensation_note": "string",
       "worth_applying": "boolean",
-      "worth_reasoning": "string (why or why not worth applying)",
-      "priority": "string (high/medium/low)"
+      "worth_reasoning": "string",
+      "priority": "string"
     }
   ]
 }
-
-IMPORTANT: Return ONLY the JSON object. No extra text. Be realistic and honest.
 `;
-
-            const completion = await groq.chat.completions.create({
-                model: 'llama-3.3-70b-versatile',
-                messages: [{ role: 'user', content: searchPrompt }],
-                response_format: { type: 'json_object' },
-                temperature: 0.3,
-                max_tokens: 4096,
-            });
-
-            const result = JSON.parse(completion.choices[0].message.content || '{}');
-            return NextResponse.json(result);
+            // 🔥 Step 3: Send to GROQ for matching/scoring
+            let rawContent = "";
+            try {
+                rawContent = await fetchFromGroq(prompt, true, false) || "";
+                
+                // Robust extraction: find first { and last }
+                const start = rawContent.indexOf('{');
+                const end = rawContent.lastIndexOf('}');
+                if (start !== -1 && end !== -1) {
+                    const cleanContent = rawContent.substring(start, end + 1);
+                    return NextResponse.json(JSON.parse(cleanContent));
+                } else {
+                    throw new Error("No JSON object found in response");
+                }
+            } catch(e: any) {
+                console.warn("[JobScout] Evaluation failed, returning raw results:", e.message);
+                // 🛡️ FALLBACK: If evaluation fails, return the jobs anyway without match scores
+                return NextResponse.json({
+                    candidate_summary: { 
+                        detected_role: finalQuery, 
+                        experience_level: "Analysis pending", 
+                        primary_skills: [], 
+                        secondary_skills: [], 
+                        estimated_market_value: "N/A" 
+                    },
+                    jobs: cleanedJobs.map(j => ({
+                        ...j,
+                        company_type: "Retrieved",
+                        work_mode: "See description",
+                        salary_range: "Check listing",
+                        experience_required: "Check listing",
+                        posted_ago: "Recently",
+                        applicants: 0,
+                        tech_stack: [],
+                        key_requirements: [],
+                        match_score: 100,
+                        match_reasoning: "Showing direct results from JSearch (Evaluation currently unavailable due to high server load).",
+                        skill_overlap: [],
+                        skill_gaps: [],
+                        worth_applying: true,
+                        priority: "Normal"
+                    }))
+                });
+            }
         }
 
         // ────────── ACTION: ANALYZE & GENERATE RESUME ──────────
@@ -109,18 +208,11 @@ IMPORTANT: Return ONLY the JSON object. No extra text. Be realistic and honest.
             }
 
             const analyzePrompt = `
-You are an elite Career Intelligence Agent — a combination of Senior Recruiter, Technical Hiring Manager, and Resume Expert.
-
-STRICT RULES:
-- NEVER fabricate or assume experience, skills, or projects
-- ONLY use actual data from the candidate profile
-- You may rephrase and optimize, but NEVER invent
-- Be brutally honest in evaluation
-- Do NOT add fake metrics or experience
+You are an elite Career Intelligence Agent. Generate an ATS-optimized resume tailored for a specific job.
 
 CANDIDATE PROFILE:
 """
-${candidateProfile}
+${candidateProfile.substring(0, 2500)}
 """
 
 TARGET JOB:
@@ -132,15 +224,7 @@ TARGET JOB:
 - Tech Stack: ${job.tech_stack?.join(', ')}
 - Key Requirements: ${job.key_requirements?.join(', ')}
 
-YOUR MISSION:
-1. Deep-analyze how well the candidate fits THIS specific job
-2. If the job requires X years experience but the candidate has fewer years, check if their projects demonstrate equivalent depth — if yes, craft the resume to highlight this
-3. Generate an ATS-optimized resume TAILORED for this exact job
-4. The resume should truthfully reorder, rephrase, and emphasize relevant skills/projects
-5. Use strong action verbs, quantify where possible from REAL data only
-6. Generate a skill gap analysis with actionable learning plan
-
-OUTPUT FORMAT (STRICT JSON):
+OUTPUT FORMAT (STRICT JSON AND NOTHING ELSE):
 {
   "deep_analysis": {
     "match_score": "number (0-100)",
@@ -148,21 +232,21 @@ OUTPUT FORMAT (STRICT JSON):
     "critical_gaps": ["string"],
     "experience_compensation": {
       "applies": "boolean",
-      "explanation": "string (how projects prove equivalent depth)"
+      "explanation": "string"
     },
-    "hidden_advantages": ["string (things the candidate has that aren't obvious requirements but add value)"],
+    "hidden_advantages": ["string"],
     "interview_topics_to_prepare": ["string"],
-    "estimated_success_rate": "string (e.g., '65% — strong profile but missing Docker experience')"
+    "estimated_success_rate": "string"
   },
   "tailored_resume": {
-    "content": "string (full ATS-optimized resume text tailored for this job — include name, contact, summary, skills, experience, projects, education)"
+    "content": "string (full ATS-optimized resume text)"
   },
   "skill_gap_plan": {
     "critical_gaps": [
       {
         "skill": "string",
-        "action": "string (specific learning recommendation)",
-        "time_estimate": "string (e.g., '2 weeks')"
+        "action": "string",
+        "time_estimate": "string"
       }
     ],
     "recommended_project": {
@@ -171,22 +255,19 @@ OUTPUT FORMAT (STRICT JSON):
       "skills_covered": ["string"]
     }
   },
-  "application_tips": ["string (3-4 specific tips for this application)"]
+  "application_tips": ["string"]
 }
-
-IMPORTANT: Return ONLY the JSON object. No extra text. Resume content must be TRUTHFUL.
 `;
 
-            const completion = await groq.chat.completions.create({
-                model: 'llama-3.3-70b-versatile',
-                messages: [{ role: 'user', content: analyzePrompt }],
-                response_format: { type: 'json_object' },
-                temperature: 0.15,
-                max_tokens: 4096,
-            });
-
-            const result = JSON.parse(completion.choices[0].message.content || '{}');
-            return NextResponse.json(result);
+            let rawContent = "";
+            try {
+                rawContent = await fetchFromGroq(analyzePrompt, true, false) || "";
+                let cleanContent = rawContent.replace(/```json\n?|\n?```/g, '').trim();
+                return NextResponse.json(JSON.parse(cleanContent));
+            } catch(e) {
+                console.error("GROQ JSON PARSE ERROR:", e, "Raw:", rawContent);
+                throw new Error("Failed to parse standard JSON from Groq");
+            }
         }
 
         return NextResponse.json({ error: 'Invalid action. Use "search" or "analyze"' }, { status: 400 });

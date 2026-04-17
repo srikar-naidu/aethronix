@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, Zap, Target, Video, Briefcase,
-  FileText, TrendingUp, Search, Award, Radar
+  CheckCircle, Video, Briefcase,
+  TrendingUp, Award, Radar
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
@@ -17,25 +17,18 @@ export default function Home() {
 
   const features = [
     {
-      title: t('navbar.verify'),
-      description: 'AI-driven skill assessments to prove your capabilities',
-      icon: CheckCircle,
-      href: '/verify',
-      color: 'text-blue-400'
+      title: t('navbar.portfolio'),
+      description: 'Generate stunning portfolios automatically',
+      icon: Briefcase,
+      href: '/portfolio',
+      color: 'text-pink-400'
     },
     {
-      title: t('navbar.matchai'),
-      description: 'Get matched with internships based on verified skills',
-      icon: Zap,
-      href: '/match-ai',
-      color: 'text-yellow-400'
-    },
-    {
-      title: t('navbar.mockprep'),
-      description: 'Practice with AI and track your milestones',
-      icon: Target,
-      href: '/mock-prep',
-      color: 'text-green-400'
+      title: t('navbar.jobscout'),
+      description: 'AI agent that finds, scores, and prepares you for the best-fit jobs',
+      icon: Radar,
+      href: '/job-scout',
+      color: 'text-cyan-400'
     },
     {
       title: t('navbar.aihire'),
@@ -45,11 +38,11 @@ export default function Home() {
       color: 'text-purple-400'
     },
     {
-      title: t('navbar.portfolio'),
-      description: 'Generate stunning portfolios automatically',
-      icon: Briefcase,
-      href: '/portfolio',
-      color: 'text-pink-400'
+      title: t('navbar.verify'),
+      description: 'AI-driven skill assessments to prove your capabilities',
+      icon: CheckCircle,
+      href: '/verify',
+      color: 'text-blue-400'
     },
     {
       title: t('navbar.roadmap'),
@@ -59,32 +52,11 @@ export default function Home() {
       color: 'text-orange-400'
     },
     {
-      title: t('navbar.resumeparser'),
-      description: 'Optimize your resume and align skills with top opportunities',
-      icon: FileText,
-      href: '/resume-parser',
-      color: 'text-teal-400'
-    },
-    {
-      title: t('navbar.quickhire'),
-      description: 'Fast-track hiring for startups and recruiters',
-      icon: Search,
-      href: '/quick-hire',
-      color: 'text-indigo-400'
-    },
-    {
       title: 'Milestone Tracker',
       description: 'Stay on top of deliverables and project goals',
       icon: Award,
       href: '/dashboard',
       color: 'text-red-400'
-    },
-    {
-      title: t('navbar.jobscout'),
-      description: 'AI agent that finds, scores, and prepares you for the best-fit jobs',
-      icon: Radar,
-      href: '/job-scout',
-      color: 'text-cyan-400'
     }
   ];
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Route, Zap, Clock, BookOpen, ArrowRight, CheckCircle2, ChevronDown, X, RefreshCw, Loader2 } from 'lucide-react';
 import { ROADMAP_DATA } from '@/data/roadmaps';
@@ -8,12 +9,28 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function RoadmapPage() {
     const { t, language } = useLanguage();
+    const searchParams = useSearchParams();
     const [selectedDomain, setSelectedDomain] = useState<string>("Frontend Engineer");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [expandedDocIdx, setExpandedDocIdx] = useState<number | null>(null);
+
+    useEffect(() => {
+        const domainParam = searchParams.get('domain');
+        if (domainParam && ROADMAP_DATA[domainParam]) {
+            setSelectedDomain(domainParam);
+        }
+    }, [searchParams]);
     
+    interface MasteryPack {
+        summary: string;
+        checklist: string[];
+        industryInsight: string;
+        tooling: { name: string; purpose: string }[];
+        interview: { question: string; answer: string };
+    }
+
     // Session cache for AI-generated documentation
-    const [sessionDocs, setSessionDocs] = useState<Record<string, string>>({});
+    const [sessionDocs, setSessionDocs] = useState<Record<string, MasteryPack>>({});
     const [generatingIdx, setGeneratingIdx] = useState<number | null>(null);
 
     const activeData = ROADMAP_DATA[selectedDomain];
@@ -46,7 +63,12 @@ export default function RoadmapPage() {
 
             const data = await response.json();
             if (data.content) {
-                setSessionDocs(prev => ({ ...prev, [cacheKey]: data.content }));
+                try {
+                    const parsed = JSON.parse(data.content);
+                    setSessionDocs(prev => ({ ...prev, [cacheKey]: parsed }));
+                } catch (e) {
+                    console.error("Failed to parse JSON content:", e);
+                }
             }
         } catch (error) {
             console.error('Failed to generate docs:', error);
@@ -300,8 +322,75 @@ export default function RoadmapPage() {
                                                                                 </button>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="whitespace-pre-wrap prose prose-invert prose-sm max-w-none">
-                                                                            {sessionDocs[cacheKey] || (
+                                                                        <div className="space-y-6">
+                                                                            {sessionDocs[cacheKey] ? (
+                                                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                                                    {/* Left: summary & checklist */}
+                                                                                    <div className="space-y-6">
+                                                                                        <div>
+                                                                                            <p className="text-white font-medium mb-4 leading-relaxed">
+                                                                                                {sessionDocs[cacheKey].summary}
+                                                                                            </p>
+                                                                                            <div className="space-y-2">
+                                                                                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                                                                    <CheckCircle2 className="w-3 h-3" /> Mastery Checklist
+                                                                                                </div>
+                                                                                                {sessionDocs[cacheKey].checklist.map((item, i) => (
+                                                                                                    <div key={i} className="flex items-start gap-2 group cursor-pointer">
+                                                                                                        <div className="mt-1 w-4 h-4 rounded border border-white/20 flex items-center justify-center group-hover:border-[var(--color-primary)] transition-colors">
+                                                                                                            <div className="w-2 h-2 rounded-sm bg-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                                                        </div>
+                                                                                                        <span className="text-xs text-gray-400 group-hover:text-gray-200 transition-colors uppercase font-medium">{item}</span>
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        <div className="p-4 rounded-xl bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/10">
+                                                                                            <div className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest mb-2">Industry Insight</div>
+                                                                                            <p className="text-xs text-gray-300 italic leading-relaxed">
+                                                                                                &quot;{sessionDocs[cacheKey].industryInsight}&quot;
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {/* Right: Tooling & Interview */}
+                                                                                    <div className="space-y-6">
+                                                                                        <div className="space-y-3">
+                                                                                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                                                                                <BookOpen className="w-3 h-3" /> Essential Stack
+                                                                                            </div>
+                                                                                            <div className="flex flex-wrap gap-2">
+                                                                                                {sessionDocs[cacheKey].tooling.map((tool, i) => (
+                                                                                                    <div key={i} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-[var(--color-primary)]/30 transition-all">
+                                                                                                        <div className="text-xs font-bold text-white">{tool.name}</div>
+                                                                                                        <div className="text-[10px] text-gray-500">{tool.purpose}</div>
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        <div className="p-5 rounded-xl border border-white/5 bg-zinc-900/50">
+                                                                                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                                                                <Zap className="w-3 h-3 text-yellow-500" /> Interview Power-Up
+                                                                                            </div>
+                                                                                            <div className="space-y-3">
+                                                                                                <p className="text-sm font-bold text-white leading-snug">
+                                                                                                    {sessionDocs[cacheKey].interview.question}
+                                                                                                </p>
+                                                                                                <details className="group">
+                                                                                                    <summary className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest cursor-pointer hover:underline list-none flex items-center gap-1">
+                                                                                                        Show Sample Answer <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+                                                                                                    </summary>
+                                                                                                    <div className="mt-3 p-3 rounded-lg bg-black/40 text-xs text-gray-400 leading-relaxed border-l-2 border-[var(--color-primary)]">
+                                                                                                        {sessionDocs[cacheKey].interview.answer}
+                                                                                                    </div>
+                                                                                                </details>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
                                                                                 <div className="text-orange-400/80 italic font-medium flex items-center gap-2">
                                                                                     <Zap className="w-4 h-4" /> AI is formulating your specialized curriculum...
                                                                                 </div>

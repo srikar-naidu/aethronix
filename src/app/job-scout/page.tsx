@@ -18,6 +18,7 @@ interface Job {
   id: number;
   title: string;
   company: string;
+  apply_url?: string;
   company_type: string;
   location: string;
   work_mode: string;
@@ -174,11 +175,19 @@ export default function JobScoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'search', candidateProfile, preferences }),
+        cache: 'no-store'
       });
-      if (!res.ok) throw new Error('Search failed');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Search failed');
+      }
       const data = await res.json();
+      console.log('[JobScout UI] Received data:', data);
       setCandidateSummary(data.candidate_summary);
       setJobs(data.jobs || []);
+      if (!data.jobs || data.jobs.length === 0) {
+        setError('No jobs found for this query. Try a broader location or role.');
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to search jobs.');
     } finally {
@@ -616,13 +625,25 @@ export default function JobScoutPage() {
                         </div>
 
                         {job.worth_applying ? (
-                          <button
-                            onClick={() => analyzeJob(job)}
-                            className="w-full px-4 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-semibold hover:bg-[var(--color-primary)]/80 hover:scale-105 transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            {t('jobscout.generateResume')}
-                          </button>
+                          <div className="w-full flex flex-col gap-2">
+                            <button
+                              onClick={() => analyzeJob(job)}
+                              className="w-full px-4 py-2.5 rounded-xl bg-[var(--color-primary)] text-white text-sm font-semibold hover:bg-[var(--color-primary)]/80 hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              {t('jobscout.generateResume')}
+                            </button>
+                            {job.apply_url && (
+                              <a
+                                href={job.apply_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full px-4 py-2 rounded-xl border border-white/20 text-[var(--color-primary)] text-sm font-semibold hover:bg-white/5 hover:border-[var(--color-primary)]/50 transition-all flex items-center justify-center gap-1.5"
+                              >
+                                Apply Now <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-xs text-[var(--color-muted)] text-center">{job.worth_reasoning}</span>
                         )}
