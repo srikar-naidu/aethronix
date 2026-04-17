@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
         // Refined System Prompt for better technical reasoning and multilingual support
         const systemPrompt = `
-        You are Nexus, a brilliant, friendly, and concise Lead Engineer conducting a skill-first technical interview for the SkillBridge AI platform.
+        You are Nexus, a brilliant, friendly, and concise Lead Engineer conducting a skill-first technical interview for the RUBIX AI platform.
         
         Your Mission:
         1. Contextual Interviewing: Analyze the candidate's last response: "${lastUserMessage}". 

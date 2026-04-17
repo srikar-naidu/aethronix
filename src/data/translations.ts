@@ -9,6 +9,7 @@ export const TRANSLATIONS = {
             roadmap: "Roadmap",
             resumeparser: "Resume Parser",
             quickhire: "QuickHire",
+            jobscout: "Job Scout",
             login: "Login"
         },
         home: {
@@ -25,7 +26,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "SkillBridge Roadmap",
+            title: "RUBIX Roadmap",
             subtitle: "AI-Generated Career Intelligence",
             targetRole: "Target Role",
             focusGaps: "Identified Gaps",
@@ -45,12 +46,24 @@ export const TRANSLATIONS = {
         },
         aihire: {
             title: "AI Hire Assessments",
-            subtitle: "Real-time Voice Transcription",
+            subtitle: "Conduct technical interviews with an AI Engineer. Get incredibly detailed feedback and performance metrics.",
             startRecording: "Start Recording",
             stopRecording: "Stop Recording",
             transcribing: "Transcribing...",
             transcript: "Transcript",
-            diagnostic: "Diagnostic Data"
+            diagnostic: "Diagnostic Data",
+            endGetReport: "End & Get Report",
+            reportTitle: "Performance Analysis",
+            whatYouDidWell: "What You Did Well",
+            whereYouStruggled: "Where You Struggled",
+            breakdown: "Question-by-Question Breakdown",
+            yourAnswer: "Your Answer",
+            feedback: "Feedback",
+            shouldHaveSaid: "What You Should Have Said",
+            howToImprove: "How to Improve",
+            tipsNextTime: "Tips for Next Time",
+            tryAnother: "Try Another Interview",
+            downloadPdf: "Download Report PDF"
         },
         resumeparser: {
             title: "AI Resume Parser",
@@ -65,6 +78,35 @@ export const TRANSLATIONS = {
             matchFound: "Matches Found",
             highMatch: "High Compatibility",
             missingSkills: "Key Gaps Identified"
+        },
+        jobscout: {
+            title: "AI Job Discovery Agent",
+            subtitle: "Automatically scans job portals, scores each listing by salary, tech stack & experience, and generates tailored resumes that pass ATS filters.",
+            yourProfile: "Your Profile",
+            yourProfileDesc: "Import your portfolio or paste your resume below",
+            importFromPortfolio: "Import from Portfolio",
+            searchPrefs: "Search Preferences",
+            salaryRange: "Salary Range",
+            location: "Location",
+            workMode: "Work Mode",
+            experienceLevel: "Experience Level",
+            scoutJobs: "Scout Jobs For Me",
+            scanning: "Scanning Job Portals",
+            scanningDesc: "Searching LinkedIn, Naukri, Indeed, Glassdoor...",
+            jobsFound: "Jobs Found",
+            all: "All",
+            worthApplying: "Worth Applying",
+            rescan: "Rescan",
+            generateResume: "Generate Resume",
+            backToJobs: "Back to all jobs",
+            topStrengths: "Top Strengths",
+            criticalGaps: "Critical Gaps",
+            successRate: "Estimated Success Rate",
+            tailoredResume: "Tailored Resume",
+            copy: "Copy",
+            downloadPdf: "Download PDF",
+            gapPlan: "Skill Gap Recovery Plan",
+            appTips: "Application Tips"
         },
         common: {
             loading: "Loading...",
@@ -82,6 +124,7 @@ export const TRANSLATIONS = {
             roadmap: "रोडमैप",
             resumeparser: "रिज्यूमे पार्सर",
             quickhire: "क्विक हायर",
+            jobscout: "जॉब स्काउट",
             login: "लॉगिन"
         },
         home: {
@@ -98,7 +141,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "स्किलब्रिज रोडमैप",
+            title: "RUBIX રોડમેપ",
             subtitle: "एआई-जनरेटेड करियर इंटेलिजेंस",
             targetRole: "लक्ष्य भूमिका",
             focusGaps: "पहचाने गए अंतराल",
@@ -118,12 +161,24 @@ export const TRANSLATIONS = {
         },
         aihire: {
             title: "एआई हायर मूल्यांकन",
-            subtitle: "रीअल-टाइम वॉयस ट्रांसक्रिप्शन",
+            subtitle: "एक एआई इंजीनियर के साथ तकनीकी साक्षात्कार आयोजित करें। विस्तृत प्रतिक्रिया और प्रदर्शन मेट्रिक्स प्राप्त करें।",
             startRecording: "रिकॉर्डिंग शुरू करें",
             stopRecording: "रिकॉर्डिंग बंद करें",
             transcribing: "ट्रांसक्राइब हो रहा है...",
             transcript: "ट्रांसक्रिप्शन",
-            diagnostic: "नैदानिक डेटा"
+            diagnostic: "नैदानिक डेटा",
+            endGetReport: "समाप्त करें और रिपोर्ट प्राप्त करें",
+            reportTitle: "प्रदर्शन विश्लेषण",
+            whatYouDidWell: "आपने क्या अच्छा किया",
+            whereYouStruggled: "आपने कहाँ संघर्ष किया",
+            breakdown: "प्रश्न-दर-प्रश्न विश्लेषण",
+            yourAnswer: "आपका उत्तर",
+            feedback: "प्रतिक्रिया",
+            shouldHaveSaid: "आपको क्या कहना चाहिए था",
+            howToImprove: "कैसे सुधारें",
+            tipsNextTime: "अगली बार के लिए टिप्स",
+            tryAnother: "एक और इंटरव्यू आज़माएं",
+            downloadPdf: "रिपोर्ट पीडीएफ डाउनलोड करें"
         },
         resumeparser: {
             title: "एआई रिज्यूमे पार्सर",
@@ -139,6 +194,35 @@ export const TRANSLATIONS = {
             highMatch: "उच्च अनुकूलता",
             missingSkills: "प्रमुख कमियों की पहचान"
         },
+        jobscout: {
+            title: "एआई जॉब डिस्कवरी एजेंट",
+            subtitle: "स्वचालित रूप से जॉब पोर्टल स्कैन करता है, सैलरी, टेक स्टैक और अनुभव के आधार पर स्कोर करता है, और ATS-अनुकूल रिज्यूमे बनाता है।",
+            yourProfile: "आपकी प्रोफाइल",
+            yourProfileDesc: "अपना पोर्टफोलियो आयात करें या नीचे अपना रिज्यूमे पेस्ट करें",
+            importFromPortfolio: "पोर्टफोलियो से आयात करें",
+            searchPrefs: "खोज प्राथमिकताएँ",
+            salaryRange: "वेतन सीमा",
+            location: "स्थान",
+            workMode: "कार्य मोड",
+            experienceLevel: "अनुभव स्तर",
+            scoutJobs: "मेरे लिए जॉब खोजें",
+            scanning: "जॉब पोर्टल स्कैन कर रहा है",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor पर खोज रहा है...",
+            jobsFound: "नौकरियां मिलीं",
+            all: "सभी",
+            worthApplying: "आवेदन करने योग्य",
+            rescan: "फिर से स्कैन करें",
+            generateResume: "रिज्यूमे बनाएं",
+            backToJobs: "सभी जॉब्स पर वापस लौटें",
+            topStrengths: "शीर्ष ताकतें",
+            criticalGaps: "गंभीर कमियां",
+            successRate: "अनुमानित सफलता दर",
+            tailoredResume: "अनुकूलित रिज्यूमे",
+            copy: "कॉपी करें",
+            downloadPdf: "पीडीएफ डाउनलोड करें",
+            gapPlan: "कौशल अंतराल रिकवरी योजना",
+            appTips: "आवेदन संबंधित टिप्स"
+        },
         common: {
             loading: "लोड हो रहा है...",
             close: "बंद करें",
@@ -148,13 +232,14 @@ export const TRANSLATIONS = {
     te: {
         navbar: {
             verify: "ధృవీకరించండి",
-            matchai: "MatchAI",
-            mockprep: "MockPrep",
+            matchai: "మ్యాచ్ AI",
+            mockprep: "మాక్ ప్రెప్",
             aihire: "AI నియమాకం",
             portfolio: "పోర్ట్‌ఫోలియో",
             roadmap: "రోడ్‌మ్యాప్",
             resumeparser: "రెజ్యూమ్ పార్సర్",
             quickhire: "త్వరిత నియమాకం",
+            jobscout: "జాబ్ స్కౌట్",
             login: "లాగిన్"
         },
         home: {
@@ -171,7 +256,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "స్కిల్ బ్రిడ్జ్ రోడ్ మ్యాప్",
+            title: "RUBIX రోడ్ మ్యాప్",
             subtitle: "AI-జనరేటెడ్ కెరీర్ ఇంటెలిజెన్స్",
             targetRole: "లక్ష్య పాత్ర",
             focusGaps: "గుర్తించిన లోపాలు",
@@ -190,13 +275,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "బహుమతి అన్‌లాక్ చేయబడింది"
         },
         aihire: {
-            title: "AI నియమాకం అంచనా",
-            subtitle: "రియల్ టైమ్ వాయిస్ ట్రాన్స్‌క్రిప్షన్",
+            title: "ఏఐ ఆన్లైన్ ఇంటర్వ్యూలు",
+            subtitle: "ఏఐ ఇంజనీర్ తో టెక్నికల్ ఇంటర్వ్యూకి హాజరుకండి. పూర్తి ఫీడ్‌బ్యాక్ మరియు స్కోరును పొందండి.",
             startRecording: "రికార్డింగ్ ప్రారంభించండి",
             stopRecording: "రికార్డింగ్ ఆపండి",
-            transcribing: "లిఖిత రూపంలోకి మారుతోంది...",
+            transcribing: "ట్రాన్స్‌క్రైబ్ చేస్తోంది...",
             transcript: "ట్రాన్స్‌క్రిప్ట్",
-            diagnostic: "రోగ నిర్ధారణ డేటా"
+            diagnostic: "డయాగ్నస్టిక్ డేటా",
+            endGetReport: "ముగించి రిపోర్ట్ పొందండి",
+            reportTitle: "పెర్ఫార్మన్స్ రిపోర్ట్",
+            whatYouDidWell: "మీరు బాగా చేసినవి",
+            whereYouStruggled: "మీరు ఇబ్బంది పడినవి",
+            breakdown: "ప్రశ్నల వారీగా విశ్లేషణ",
+            yourAnswer: "మీ సమాధానం",
+            feedback: "ఫీడ్‌బ్యాక్",
+            shouldHaveSaid: "మీరు ఎలా చెప్పి ఉండాల్సింది",
+            howToImprove: "ఎలా మెరుగుపరచాలి",
+            tipsNextTime: "తదుపరి ఇంటర్వ్యూకి చిట్కాలు",
+            tryAnother: "మరొక ఇంటర్వ్యూ ప్రయత్నించండి",
+            downloadPdf: "రిపోర్ట్ పీడీఎఫ్ డౌన్‌లోడ్ చేయండి"
         },
         resumeparser: {
             title: "AI రెజ్యూమ్ పార్సర్",
@@ -211,6 +308,35 @@ export const TRANSLATIONS = {
             matchFound: "సరిపోలికలు కనుగొనబడ్డాయి",
             highMatch: "అధిక అనుకూలత",
             missingSkills: "ముఖ్యమైన లోపాలు గుర్తించబడ్డాయి"
+        },
+        jobscout: {
+            title: "ఏఐ ఉద్యోగ అన్వేషణ ఏజెంట్",
+            subtitle: "ఆటోమేటిక్ గా జాబ్ పోర్టల్స్ స్కాన్ చేస్తుంది, జీతం, టెక్ స్టాక్ & అనుభవం ఆధారంగా స్కోర్ చేసి, ఏటీఎస్ కి సరిపోయే రెజ్యూమెలను తయారు చేస్తుంది.",
+            yourProfile: "మీ ప్రొఫైల్",
+            yourProfileDesc: "మీ పోర్ట్‌ఫోలియోను ఇంపోర్ట్ చేయండి లేదా కింద మీ రెజ్యూమెను పేస్ట్ చేయండి",
+            importFromPortfolio: "పోర్ట్‌ఫోలియో నుండి ఇంపోర్ట్ చేయండి",
+            searchPrefs: "సెర్చ్ ప్రాధాన్యతలు",
+            salaryRange: "జీతం పరిధి",
+            location: "స్థానం",
+            workMode: "పని విధానం",
+            experienceLevel: "అనుభవ స్థాయి",
+            scoutJobs: "నా కోసం ఉద్యోగాలు వెతకండి",
+            scanning: "జాబ్ పోర్టల్స్ స్కాన్ చేస్తోంది",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor లో వెతుకుతోంది...",
+            jobsFound: "ఉద్యోగాలు దొరికాయి",
+            all: "అన్నీ",
+            worthApplying: "అప్లై చేయదగినవి",
+            rescan: "మళ్ళీ స్కాన్ చేయండి",
+            generateResume: "రెజ్యూమె తయారు చేయండి",
+            backToJobs: "అన్ని ఉద్యోగాలకు తిరిగి వెళ్ళండి",
+            topStrengths: "ప్రధాన బలాలు",
+            criticalGaps: "ముఖ్యమైన లోపాలు",
+            successRate: "అంచనా వేసిన సక్సెస్ రేటు",
+            tailoredResume: "అనుకూల రెజ్యూమె",
+            copy: "కాపీ చేయండి",
+            downloadPdf: "పీడీఎఫ్ డౌన్‌లోడ్ చేయండి",
+            gapPlan: "స్కిల్ గ్యాప్ రికవరీ ప్లాన్",
+            appTips: "అప్లికేషన్ చిట్కాలు"
         },
         common: {
             loading: "లోడ్ అవుతోంది...",
@@ -228,6 +354,7 @@ export const TRANSLATIONS = {
             roadmap: "வரைபடம்",
             resumeparser: "ரெஸ்யூம் பார்சர்",
             quickhire: "விரைவான வேலை",
+            jobscout: "ஜாப் ஸ்கவுட்",
             login: "உள்நுழை"
         },
         home: {
@@ -244,7 +371,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "SkillBridge வரைபடம்",
+            title: "RUBIX வரைபடம்",
             subtitle: "AI-உருவாக்கிய தொழில் நுண்ணறிவு",
             targetRole: "இலக்கு பங்கு",
             focusGaps: "கண்டறியப்பட்ட இடைவெளிகள்",
@@ -263,13 +390,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "வெகுமதி திறக்கப்பட்டது"
         },
         aihire: {
-            title: "AI வேலை மதிப்பீடு",
-            subtitle: "நிகழ்நேர குரல் டிரான்ஸ்கிரிப்ஷன்",
-            startRecording: "பதிவைத் தொடங்கு",
+            title: "செயற்கை நுண்ணறிவு நேர்காணல்கள்",
+            subtitle: "ஏஐ இன்ஜினியருடன் தொழில்நுட்ப நேர்காணல்களை மேற்கொள்ளுங்கள். முழுமையான கருத்து மற்றும் மதிப்பெண்களைப் பெறுங்கள்.",
+            startRecording: "பதிவு செய்யத் தொடங்கு",
             stopRecording: "பதிவை நிறுத்து",
-            transcribing: "மாற்றப்படுகிறது...",
-            transcript: "டிரான்ஸ்கிரிப்ட்",
-            diagnostic: "கண்டறியும் தரவு"
+            transcribing: "எழுத்துப்பெயர்க்கிறது...",
+            transcript: "படியெடுத்தல்",
+            diagnostic: "கண்டறியும் தரவு",
+            endGetReport: "முடித்து அறிக்கையைப் பெறு",
+            reportTitle: "செயல்திறன் பகுப்பாய்வு",
+            whatYouDidWell: "நீங்கள் சிறப்பாக செய்தவை",
+            whereYouStruggled: "நீங்கள் சிரமப்பட்டவை",
+            breakdown: "கேள்வி வாரியான பகுப்பாய்வு",
+            yourAnswer: "உங்கள் பதில்",
+            feedback: "பின்னூட்டம்",
+            shouldHaveSaid: "நீங்கள் என்ன சொல்லியிருக்க வேண்டும்",
+            howToImprove: "எப்படி மேம்படுத்துவது",
+            tipsNextTime: "அடுத்த முறைக்கான குறிப்புகள்",
+            tryAnother: "மற்றொரு நேர்காணலை முயற்சிக்கவும்",
+            downloadPdf: "அறிக்கை பிடிஎஃப் பதிவிறக்கு"
         },
         resumeparser: {
             title: "AI ரெஸ்யூம் பார்சர்",
@@ -284,6 +423,35 @@ export const TRANSLATIONS = {
             matchFound: "பொருத்தங்கள் கண்டறியப்பட்டன",
             highMatch: "அதிக பொருந்தக்கூடிய தன்மை",
             missingSkills: "முக்கிய இடைவெளிகள் கண்டறியப்பட்டுள்ளன"
+        },
+        jobscout: {
+            title: "செயற்கை நுண்ணறிவு வேலை தேடல் முகவர்",
+            subtitle: "தானாக வேலை இணையதளங்களை ஸ்கேன் செய்கிறது, சம்பளம், டெக் ஸ்டாக் மற்றும் அனுபவத்தின் அடிப்படையில் மதிப்பெண் அளித்து, ஏடிஎஸ்-க்கு ஏற்ற ரெஸ்யூம்களை உருவாக்குகிறது.",
+            yourProfile: "உங்கள் விவரக்குறிப்பு",
+            yourProfileDesc: "உங்கள் போர்ட்ஃபோலியோவை இறக்குமதி செய்யுங்கள் அல்லது உங்கள் ரெஸ்யூமை கீழே ஒட்டவும்",
+            importFromPortfolio: "போர்ட்ஃபோலியோவிலிருந்து இறக்குமதி செய்",
+            searchPrefs: "தேடல் விருப்பங்கள்",
+            salaryRange: "சம்பள வரம்பு",
+            location: "இடம்",
+            workMode: "பணி முறை",
+            experienceLevel: "அனுபவ நிலை",
+            scoutJobs: "எனக்காக வேலைகளைத் தேடுங்கள்",
+            scanning: "வேலை இணையதளங்களை ஸ்கேன் செய்கிறது",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor-ல் தேடப்படுகிறது...",
+            jobsFound: "வேலைகள் கிடைத்துள்ளன",
+            all: "அனைத்தும்",
+            worthApplying: "விண்ணப்பிக்க தகுதியானவை",
+            rescan: "மீண்டும் ஸ்கேன் செய்",
+            generateResume: "ரெஸ்யூமை உருவாக்கு",
+            backToJobs: "அனைத்து வேலைகளுக்கும் திரும்புக",
+            topStrengths: "முக்கிய பலங்கள்",
+            criticalGaps: "முக்கியமான குறைபாடுகள்",
+            successRate: "மதிப்பிடப்பட்ட வெற்றி விகிதம்",
+            tailoredResume: "தனிப்பயனாக்கப்பட்ட ரெஸ்யூம்",
+            copy: "நகலெடு",
+            downloadPdf: "பிடிஎஃப் பதிவிறக்கு",
+            gapPlan: "திறன் குறைபாடு மீட்பு திட்டம்",
+            appTips: "விண்ணப்ப குறிப்புகள்"
         },
         common: {
             loading: "ஏற்றப்படுகிறது...",
@@ -301,6 +469,7 @@ export const TRANSLATIONS = {
             roadmap: "ಮಾರ್ಗಸೂಚಿ",
             resumeparser: "ರೆಸ್ಯೂಮ್ ಪಾರ್ಸರ್",
             quickhire: "ತ್ವರಿತ ನೇಮಕಾತಿ",
+            jobscout: "ಜಾಬ್ ಸ್ಕೌಟ್",
             login: "ಲಾಗಿನ್"
         },
         home: {
@@ -317,7 +486,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "SkillBridge ಮಾರ್ಗಸೂಚಿ",
+            title: "RUBIX ಮಾರ್ಗಸೂಚಿ",
             subtitle: "AI-ನಿರ್ಮಿತ ವೃತ್ತಿ ಬುದ್ಧಿಮತ್ತೆ",
             targetRole: "ಗುರಿ ಪಾತ್ರ",
             focusGaps: "ಗುರುತಿಸಲಾದ ಕೊರತೆಗಳು",
@@ -336,13 +505,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "ಬಹುಮಾನ ಅನ್‌ಲಾಕ್ ಆಗಿದೆ"
         },
         aihire: {
-            title: "AI ನೇಮಕಾತಿ ಮೌಲ್ಯಮಾಪನ",
-            subtitle: "ನೈಜ ಸಮಯದಲ್ಲಿ ಧ್ವನಿ ಲಿಪ್ಯಂತರ",
+            title: "ಎಐ ಸಂದರ್ಶನಗಳು",
+            subtitle: "ಎಐ ಇಂಜಿನಿಯರ್ ಜೊತೆಗೆ ತಾಂತ್ರಿಕ ಸಂದರ್ಶನ ನಡೆಸಿ. ವಿವರವಾದ ಪ್ರತಿಕ್ರಿಯೆ ಮತ್ತು ಸ್ಕೋರ್ ಪಡೆಯಿರಿ.",
             startRecording: "ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಿ",
             stopRecording: "ರೆಕಾರ್ಡಿಂಗ್ ನಿಲ್ಲಿಸಿ",
-            transcribing: "ಲಿಪ್ಯಂತರವಾಗುತ್ತಿದೆ...",
+            transcribing: "ಲಿಪ್ಯಂತರ ಮಾಡಲಾಗುತ್ತಿದೆ...",
             transcript: "ಲಿಪ್ಯಂತರ",
-            diagnostic: "ರೋಗನಿರ್ಣಯದ ಡೇಟಾ"
+            diagnostic: "ರೋಗನಿರ್ಣಯ ದತ್ತಾಂಶ",
+            endGetReport: "ಮುಕ್ತಾಯಗೊಳಿಸಿ ವರದಿ ಪಡೆಯಿರಿ",
+            reportTitle: "ಕಾರ್ಯಕ್ಷಮತೆಯ ವಿಶ್ಲೇಷಣೆ",
+            whatYouDidWell: "ನೀವು ಚೆನ್ನಾಗಿ ಮಾಡಿದ್ದು",
+            whereYouStruggled: "ನೀವು ಎಡವಿದ್ದು",
+            breakdown: "ಪ್ರಶ್ನೆ-ವಾರು ವಿಶ್ಲೇಷಣೆ",
+            yourAnswer: "ನಿಮ್ಮ ಉತ್ತರ",
+            feedback: "ಪ್ರತಿಕ್ರಿಯೆ",
+            shouldHaveSaid: "ನೀವು ಏನು ಹೇಳಬೇಕಾಗಿತ್ತು",
+            howToImprove: "ಹೇಗೆ ಸುಧಾರಿಸುವುದು",
+            tipsNextTime: "ಮುಂದಿನ ಬಾರಿಗೆ ಸಲಹೆಗಳು",
+            tryAnother: "ಮತ್ತೊಂದು ಸಂದರ್ಶನ ಪ್ರಯತ್ನಿಸಿ",
+            downloadPdf: "ವರದಿ ಪಿಡಿಎಫ್ ಡೌನ್ಲೋಡ್ ಮಾಡಿ"
         },
         resumeparser: {
             title: "AI ರೆಸ್ಯೂಮ್ ಪಾರ್ಸರ್",
@@ -357,6 +538,35 @@ export const TRANSLATIONS = {
             matchFound: "ಹೊಂದಾಣಿಕೆಗಳು ಕಂಡುಬಂದಿವೆ",
             highMatch: "ಹೆಚ್ಚಿನ ಹೊಂದಾಣಿಕೆ",
             missingSkills: "ಪ್ರಮುಖ ಕೊರತೆಗಳನ್ನು ಗುರುತಿಸಲಾಗಿದೆ"
+        },
+        jobscout: {
+            title: "ಎಐ ಉದ್ಯೋಗ ಶೋಧನೆ ಏಜೆಂಟ್",
+            subtitle: "ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಉದ್ಯೋಗ ಪೋರ್ಟಲ್‌ಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡುತ್ತದೆ, ವೇತನ, ಟೆಕ್ ಸ್ಟ್ಯಾಕ್ ಮತ್ತು ಅನುಭವದ ಆಧಾರದ ಮೇಲೆ ಸ್ಕೋರ್ ಮಾಡುತ್ತದೆ, ಎಟಿಎಸ್-ಸ್ನೇಹಿ ರೆಸ್ಯೂಮ್‌ಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತದೆ.",
+            yourProfile: "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
+            yourProfileDesc: "ನಿಮ್ಮ ಪೋರ್ಟ್‌ಫೋಲಿಯೊವನ್ನು ಆಮದು ಮಾಡಿ ಅಥವಾ ಕೆಳಗೆ ನಿಮ್ಮ ರೆಸ್ಯೂಮ್ ಅನ್ನು ಅಂಟಿಸಿ",
+            importFromPortfolio: "ಪೋರ್ಟ್‌ಫೋಲಿಯೊದಿಂದ ಆಮದು ಮಾಡಿ",
+            searchPrefs: "ಹುಡುಕಾಟ ಆದ್ಯತೆಗಳು",
+            salaryRange: "ವೇತನ ಶ್ರೇಣಿ",
+            location: "ಸ್ಥಳ",
+            workMode: "ಕೆಲಸದ ವಿಧಾನ",
+            experienceLevel: "ಅನುಭವದ ಮಟ್ಟ",
+            scoutJobs: "ನನಗಾಗಿ ಉದ್ಯೋಗಗಳನ್ನು ಹುಡುಕಿ",
+            scanning: "ಉದ್ಯೋಗ ಪೋರ್ಟಲ್‌ಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಲಾಗುತ್ತಿದೆ",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor ನಲ್ಲಿ ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+            jobsFound: "ಉದ್ಯೋಗಗಳು ದೊರೆತಿವೆ",
+            all: "ಎಲ್ಲಾ",
+            worthApplying: "ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಯೋಗ್ಯ",
+            rescan: "ಮತ್ತೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+            generateResume: "ರೆಸ್ಯೂಮ್ ರಚಿಸಿ",
+            backToJobs: "ಎಲ್ಲಾ ಉದ್ಯೋಗಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+            topStrengths: "ಪ್ರಮುಖ ಶಕ್ತಿಗಳು",
+            criticalGaps: "ಪ್ರಮುಖ ಕೊರತೆಗಳು",
+            successRate: "ಅಂದಾಜು ಯಶಸ್ಸಿನ ದರ",
+            tailoredResume: "ಕಸ್ಟಮೈಸ್ಡ್ ರೆಸ್ಯೂಮ್",
+            copy: "ನಕಲಿಸಿ",
+            downloadPdf: "ಪಿಡಿಎಫ್ ಡೌನ್ಲೋಡ್ ಮಾಡಿ",
+            gapPlan: "ಕೌಶಲ್ಯದ ಅಂತರ ನಿವಾರಣಾ ಯೋಜನೆ",
+            appTips: "ಅರ್ಜಿ ಸಲ್ಲಿಸುವ ಸಲಹೆಗಳು"
         },
         common: {
             loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
@@ -373,7 +583,8 @@ export const TRANSLATIONS = {
             portfolio: "পোর্টফোলিও",
             roadmap: "রোডম্যাপ",
             resumeparser: "জীবনবৃত্তান্ত পার্সার",
-            quickhire: "কুইক হায়ার",
+            quickhire: "কুইক হায়ার",
+            jobscout: "জব স্কাউট",
             login: "লগইন"
         },
         home: {
@@ -409,13 +620,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "পুরস্কার আনলক"
         },
         aihire: {
-            title: "এআই হায়ার মূল্যায়ন",
-            subtitle: "রিয়েল-টাইম ভয়েস ট্রান্সক্রিপশন",
+            title: "এআই ইন্টারভিউ অসেসমেন্ট",
+            subtitle: "এআই ইঞ্জিনিয়ারের সাথে প্রযুক্তিগত ইন্টারভিউ দিন। বিস্তারিত মতামত এবং মূল্যায়ণ পান।",
             startRecording: "রেকর্ডিং শুরু করুন",
             stopRecording: "রেকর্ডিং বন্ধ করুন",
-            transcribing: "ট্রান্সক্রাইব হচ্ছে...",
+            transcribing: "ট্রান্সক্রাইব করা হচ্ছে...",
             transcript: "ট্রান্সক্রিপ্ট",
-            diagnostic: "ডায়াগনস্টিক ডেটা"
+            diagnostic: "ডায়াগনস্টিক তথ্য",
+            endGetReport: "শেষ করুন এবং রিপোর্ট পান",
+            reportTitle: "কর্মক্ষমতা বিশ্লেষণ",
+            whatYouDidWell: "আপনি যা ভালো করেছেন",
+            whereYouStruggled: "আপনি যেখানে সংগ্রাম করেছেন",
+            breakdown: "প্রশ্ন-ভিত্তিক বিশ্লেষণ",
+            yourAnswer: "আপনার উত্তর",
+            feedback: "মতামত",
+            shouldHaveSaid: "আপনার কী বলা উচিত ছিল",
+            howToImprove: "কীভাবে উন্নতি করবেন",
+            tipsNextTime: "পরবর্তী সময়ের জন্য টিপস",
+            tryAnother: "আরেকটি ইন্টারভিউ চেষ্টা করুন",
+            downloadPdf: "রিপোর্ট পিডিএফ ডাউনলোড করুন"
         },
         resumeparser: {
             title: "AI জীবনবৃত্তান্ত পার্সার",
@@ -430,6 +653,35 @@ export const TRANSLATIONS = {
             matchFound: "মিল পাওয়া গেছে",
             highMatch: "উচ্চ সামঞ্জস্য",
             missingSkills: "প্রধান ঘাটতি চিহ্নিত"
+        },
+        jobscout: {
+            title: "এআই জব ডিসকভারি এজেন্ট",
+            subtitle: "স্বয়ংক্রিয়ভাবে জব পোর্টাল স্ক্যান করে, বেতন, টেক স্ট্যাক এবং অভিজ্ঞতার ভিত্তিতে স্কোর করে এবং এটিএস-বান্ধব রেজ্যুমে তৈরি করে।",
+            yourProfile: "আপনার প্রোফাইল",
+            yourProfileDesc: "আপনার পোর্টফোলিও আমদানি করুন বা নিচে আপনার রেজ্যুমে পেস্ট করুন",
+            importFromPortfolio: "পোর্টফোলিও থেকে আমদানি করুন",
+            searchPrefs: "অনুসন্ধান পছন্দ",
+            salaryRange: "বেতন সীমা",
+            location: "অবস্থান",
+            workMode: "কাজের ধরণ",
+            experienceLevel: "অভিজ্ঞতার স্তর",
+            scoutJobs: "আমার জন্য জব খুঁজুন",
+            scanning: "জব পোর্টাল স্ক্যান করা হচ্ছে",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor এ খোঁজা হচ্ছে...",
+            jobsFound: "জব পাওয়া গেছে",
+            all: "সব",
+            worthApplying: "আবেদন করার যোগ্য",
+            rescan: "আবার স্ক্যান করুন",
+            generateResume: "রেজ্যুমে তৈরি করুন",
+            backToJobs: "সব জবে ফিরে যান",
+            topStrengths: "শীর্ষ শক্তি",
+            criticalGaps: "গুরুতর অভাব",
+            successRate: "আনুমানিক সফলতার হার",
+            tailoredResume: "কাস্টমাইজড রেজ্যুমে",
+            copy: "কপি করুন",
+            downloadPdf: "পিডিএফ ডাউনলোড করুন",
+            gapPlan: "স্কিল গ্যাপ রিকভারি প্ল্যান",
+            appTips: "আবেদনের টিপস"
         },
         common: {
             loading: "লোড হচ্ছে...",
@@ -447,6 +699,7 @@ export const TRANSLATIONS = {
             roadmap: "રોડમેપ",
             resumeparser: "રિઝ્યૂમે પાર્સર",
             quickhire: "ક્વિક હાયર",
+            jobscout: "જોબ સ્કાઉટ",
             login: "લોગિન"
         },
         home: {
@@ -482,13 +735,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "ઇનામ અનલોક"
         },
         aihire: {
-            title: "AI હાયર મૂલ્યાંકન",
-            subtitle: "રીઅલ-ટાઇમ વૉઇસ ટ્રાન્સક્રિપ્શન",
+            title: "એઆઈ ઇન્ટરવ્યુ આકારણીઓ",
+            subtitle: "એઆઈ એન્જિનિયર સાથે તકનીકી ઇન્ટરવ્યુ લો. વિગતવાર પ્રતિસાદ અને ગુણ મેળવો.",
             startRecording: "રેકોર્ડિંગ શરૂ કરો",
             stopRecording: "રેકોર્ડિંગ બંધ કરો",
-            transcribing: "ટ્રાન્સક્રાઇબ થઈ રહ્યું છે...",
+            transcribing: "ટ્રાન્સક્રિપ્શન થઈ રહ્યું છે...",
             transcript: "ટ્રાન્સક્રિપ્ટ",
-            diagnostic: "ડાયગ્નોસ્ટિક ડેટા"
+            diagnostic: "નિદાન ડેટા",
+            endGetReport: "સમાપ્ત કરો અને રિપોર્ટ મેળવો",
+            reportTitle: "પ્રદર્શન વિશ્લેષણ",
+            whatYouDidWell: "તમે શું સારું કર્યું",
+            whereYouStruggled: "તમે ક્યાં સંઘર્ષ કર્યો",
+            breakdown: "પ્રશ્ન મુજબ વિશ્લેષણ",
+            yourAnswer: "તમારો જવાબ",
+            feedback: "પ્રતિસાદ",
+            shouldHaveSaid: "તમારે શું કહેવું જોઈતું હતું",
+            howToImprove: "કેવી રીતે સુધારવું",
+            tipsNextTime: "આગામી સમય માટે ટિપ્સ",
+            tryAnother: "બીજો ઇન્ટરવ્યુ અજમાવો",
+            downloadPdf: "રિપોર્ટ પીડીએફ ડાઉનલોડ કરો"
         },
         resumeparser: {
             title: "AI રિઝ્યૂમે પાર્સર",
@@ -503,6 +768,35 @@ export const TRANSLATIONS = {
             matchFound: "મેચ મળી",
             highMatch: "ઉચ્ચ સુસંગતતા",
             missingSkills: "મુખ્ય ખામીઓ ઓળખાઈ"
+        },
+        jobscout: {
+            title: "એઆઈ જોબ ડિસ્કવરી એજન્ટ",
+            subtitle: "આપોઆપ જોબ પોર્ટલ સ્કેન કરે છે, પગાર, ટેક સ્ટેક અને અનુભવના આધારે સ્કોર કરે છે, અને ATS-અનુકૂળ રેઝ્યૂમે બનાવે છે.",
+            yourProfile: "તમારી પ્રોફાઇલ",
+            yourProfileDesc: "તમારો પોર્ટફોલિયો આયાત કરો અથવા નીચે તમારો રેઝ્યુમે પેસ્ટ કરો",
+            importFromPortfolio: "પોર્ટફોલિયોમાંથી આયાત કરો",
+            searchPrefs: "શોધ પસંદગીઓ",
+            salaryRange: "પગાર શ્રેણી",
+            location: "સ્થાન",
+            workMode: "કાર્ય મોડ",
+            experienceLevel: "અનુભવ સ્તર",
+            scoutJobs: "મારા માટે જોબ શોધો",
+            scanning: "જોબ પોર્ટલ સ્કેન થઈ રહ્યું છે",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor પર શોધી રહ્યા છીએ...",
+            jobsFound: "નોકરીઓ મળી",
+            all: "બધા",
+            worthApplying: "અરજી કરવા યોગ્ય",
+            rescan: "ફરીથી સ્કેન કરો",
+            generateResume: "રેઝ્યુમે બનાવો",
+            backToJobs: "બધી નોકરીઓ પર પાછા ફરો",
+            topStrengths: "ટોચની શક્તિઓ",
+            criticalGaps: "ગંભીર ખામીઓ",
+            successRate: "અંદાજિત સફળતા દર",
+            tailoredResume: "કસ્ટમાઇઝ્ડ રેઝ્યુમે",
+            copy: "કૉપિ કરો",
+            downloadPdf: "પીડીએફ ડાઉનલોડ કરો",
+            gapPlan: "કૌશલ્ય અંતર પુનઃપ્રાપ્તિ યોજના",
+            appTips: "અરજીઓ માટે ટિપ્સ"
         },
         common: {
             loading: "લોડ થઈ રહ્યું છે...",
@@ -520,6 +814,7 @@ export const TRANSLATIONS = {
             roadmap: "रोडमॅप",
             resumeparser: "रिज्यूमे पार्सर",
             quickhire: "क्विक हायर",
+            jobscout: "जॉब स्काउट",
             login: "लॉगिन"
         },
         home: {
@@ -536,7 +831,7 @@ export const TRANSLATIONS = {
             }
         },
         roadmap: {
-            title: "स्किलब्रिज रोडमॅप",
+            title: "RUBIX रोडमॅप",
             subtitle: "एआय-व्युत्पन्न करिअर इंटेलिजेंस",
             targetRole: "लक्ष्य भूमिका",
             focusGaps: "ओळखलेली तफावत",
@@ -555,13 +850,25 @@ export const TRANSLATIONS = {
             rewardUnlocked: "बक्षीस अनलॉक झाले"
         },
         aihire: {
-            title: "एआय हायर मूल्यमापन",
-            subtitle: "रीअल-टाइम व्हॉइस ट्रान्सक्रिप्शन",
+            title: "एआय मुलाखत मूल्यमापन",
+            subtitle: "एआय इंजिनीअरसोबत तांत्रिक मुलाखत द्या. सविस्तर अभिप्राय आणि गुण मिळवा.",
             startRecording: "रेकॉर्डिंग सुरू करा",
             stopRecording: "रेकॉर्डिंग थांबवा",
-            transcribing: "ट्रान्सक्राइब होत आहे...",
-            transcript: "ट्रान्सक्रिप्शन",
-            diagnostic: "निदान डेटा"
+            transcribing: "ट्रान्सक्राइब करत आहे...",
+            transcript: "ट्रान्सक्रिप्ट",
+            diagnostic: "डायग्नोस्टिक डेटा",
+            endGetReport: "थांबवा आणि रिपोर्ट मिळवा",
+            reportTitle: "कामगिरी विश्लेषण",
+            whatYouDidWell: "तुम्ही काय चांगले केले",
+            whereYouStruggled: "तुम्ही कुठे अडखळलात",
+            breakdown: "प्रश्न-निहाय विश्लेषण",
+            yourAnswer: "तुमचे उत्तर",
+            feedback: "अभिप्राय",
+            shouldHaveSaid: "तुम्ही काय म्हणायला हवे होते",
+            howToImprove: "कशी सुधारणा करावी",
+            tipsNextTime: "पुढच्या वेळेसाठी टिप्स",
+            tryAnother: "दुसरी मुलाखत वापरून पहा",
+            downloadPdf: "रिपोर्ट पीडीएफ डाउनलोड करा"
         },
         resumeparser: {
             title: "AI रिज्यूमे पार्सर",
@@ -576,6 +883,35 @@ export const TRANSLATIONS = {
             matchFound: "साम्य आढळले",
             highMatch: "उच्च सुसंगतता",
             missingSkills: "प्रमुख उणिवा ओळखल्या"
+        },
+        jobscout: {
+            title: "एआय जॉब डिस्कव्हरी एजंट",
+            subtitle: "स्वयंचलितपणे जॉब पोर्टल स्कॅन करतो, पगार, टेक स्टॅक आणि अनुभवावर आधारित स्कोअर करतो, आणि ATS-फ्रेंडली रेझ्युमे बनवतो.",
+            yourProfile: "तुमची प्रोफाइल",
+            yourProfileDesc: "तुमचा पोर्टफोलिओ आयात करा किंवा खाली तुमचा रेझ्युमे पेस्ट करा",
+            importFromPortfolio: "पोर्टफोलिओमधून आयात करा",
+            searchPrefs: "शोध प्राधान्ये",
+            salaryRange: "पगार श्रेणी",
+            location: "स्थान",
+            workMode: "कामाची पद्धत",
+            experienceLevel: "अनुभव पातळी",
+            scoutJobs: "माझ्यासाठी नोकऱ्या शोधा",
+            scanning: "जॉब पोर्टल स्कॅन करत आहे",
+            scanningDesc: "LinkedIn, Naukri, Indeed, Glassdoor वर शोधत आहे...",
+            jobsFound: "नोकऱ्या सापडल्या",
+            all: "सर्व",
+            worthApplying: "अर्ज करण्यास योग्य",
+            rescan: "पुन्हा स्कॅन करा",
+            generateResume: "रेझ्युमे तयार करा",
+            backToJobs: "सर्व नोकऱ्यांवर परत जा",
+            topStrengths: "प्रमुख शक्ती",
+            criticalGaps: "गंभीर त्रुटी",
+            successRate: "अंदाजे यश दर",
+            tailoredResume: "सानुकूलित रेझ्युमे",
+            copy: "कॉपी करा",
+            downloadPdf: "पीडीएफ डाउनलोड करा",
+            gapPlan: "कौशल्य गॅप रिकव्हरी प्लॅन",
+            appTips: "अर्ज करण्याच्या टिप्स"
         },
         common: {
             loading: "लोड होत आहे...",

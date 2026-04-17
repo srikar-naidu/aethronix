@@ -7,6 +7,7 @@ import {
     CheckCircle2, Clock, Calendar, ChevronRight, BarChart3,
     Users, Sparkles, FileText, Award, TrendingUp, Loader2
 } from 'lucide-react';
+import Flashcard from '@/components/Flashcard';
 
 // ===== Mock Data =====
 const domains = [
@@ -18,36 +19,133 @@ const domains = [
     { id: 'design', label: 'UI/UX Design', icon: '🎨' },
 ];
 
-const mockQuestions: Record<string, string[]> = {
+interface QuestionData {
+    question: string;
+    hint: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    tags: string[];
+}
+
+const mockQuestions: Record<string, QuestionData[]> = {
     frontend: [
-        "Explain the difference between useMemo and useCallback in React.",
-        "How does the Virtual DOM work and why is it efficient?",
-        "Describe the CSS Box Model and how box-sizing affects layout.",
+        {
+            question: "Explain the difference between useMemo and useCallback in React.",
+            hint: "useMemo memoizes values, useCallback memoizes functions. Both prevent unnecessary re-renders but serve different purposes in optimization.",
+            difficulty: 'Medium',
+            tags: ['React', 'Hooks', 'Performance']
+        },
+        {
+            question: "How does the Virtual DOM work and why is it efficient?",
+            hint: "Virtual DOM creates a lightweight copy of the real DOM. It compares changes and updates only what's necessary, batching operations for better performance.",
+            difficulty: 'Easy',
+            tags: ['React', 'DOM', 'Performance']
+        },
+        {
+            question: "Describe the CSS Box Model and how box-sizing affects layout.",
+            hint: "Box model includes content, padding, border, margin. box-sizing: border-box makes width/height include padding and border, preventing layout shifts.",
+            difficulty: 'Easy',
+            tags: ['CSS', 'Layout', 'Box Model']
+        },
     ],
     backend: [
-        "What is the difference between SQL and NoSQL databases?",
-        "Explain RESTful API design principles.",
-        "How would you handle authentication in a microservices architecture?",
+        {
+            question: "What is the difference between SQL and NoSQL databases?",
+            hint: "SQL is relational with fixed schemas, NoSQL is flexible and schema-less. Choose based on data structure needs and scalability requirements.",
+            difficulty: 'Medium',
+            tags: ['Databases', 'SQL', 'NoSQL']
+        },
+        {
+            question: "Explain RESTful API design principles.",
+            hint: "REST uses HTTP methods, stateless communication, and resource-based URLs. Focus on scalability, simplicity, and uniform interface.",
+            difficulty: 'Medium',
+            tags: ['APIs', 'REST', 'HTTP']
+        },
+        {
+            question: "How would you handle authentication in a microservices architecture?",
+            hint: "Use JWT tokens, API gateways for auth, and service-to-service authentication. Consider OAuth 2.0 and centralized auth services.",
+            difficulty: 'Hard',
+            tags: ['Microservices', 'Security', 'JWT']
+        },
     ],
     data: [
-        "Explain the bias-variance tradeoff in machine learning.",
-        "What is gradient descent and how does it optimize models?",
-        "Describe the difference between supervised and unsupervised learning.",
+        {
+            question: "Explain the bias-variance tradeoff in machine learning.",
+            hint: "Bias is error from wrong assumptions, variance from sensitivity to training data. Balance prevents overfitting and underfitting.",
+            difficulty: 'Medium',
+            tags: ['ML', 'Bias-Variance', 'Overfitting']
+        },
+        {
+            question: "What is gradient descent and how does it optimize models?",
+            hint: "Iterative optimization finding minimum loss by following negative gradient. Different variants (batch, stochastic, mini-batch) balance speed and accuracy.",
+            difficulty: 'Hard',
+            tags: ['ML', 'Optimization', 'Gradient Descent']
+        },
+        {
+            question: "Describe the difference between supervised and unsupervised learning.",
+            hint: "Supervised uses labeled data for prediction, unsupervised finds patterns in unlabeled data. Choose based on available data and problem type.",
+            difficulty: 'Easy',
+            tags: ['ML', 'Supervised', 'Unsupervised']
+        },
     ],
     devops: [
-        "What is containerization and how does Docker work?",
-        "Explain CI/CD pipelines and their benefits.",
-        "How would you set up monitoring for a production application?",
+        {
+            question: "What is containerization and how does Docker work?",
+            hint: "Containerization packages apps with dependencies. Docker creates isolated environments using Linux containers for consistent deployment.",
+            difficulty: 'Medium',
+            tags: ['Docker', 'Containers', 'DevOps']
+        },
+        {
+            question: "Explain CI/CD pipelines and their benefits.",
+            hint: "Continuous Integration/Deployment automates testing and deployment. Benefits include faster releases, fewer bugs, and better collaboration.",
+            difficulty: 'Medium',
+            tags: ['CI/CD', 'Automation', 'DevOps']
+        },
+        {
+            question: "How would you set up monitoring for a production application?",
+            hint: "Use metrics, logs, and alerts. Tools like Prometheus, Grafana, ELK stack. Monitor performance, errors, and business metrics.",
+            difficulty: 'Hard',
+            tags: ['Monitoring', 'Production', 'Observability']
+        },
     ],
     mobile: [
-        "What is the difference between native and cross-platform development?",
-        "Explain how React Native bridges JavaScript and native modules.",
-        "How do you handle offline data synchronization in mobile apps?",
+        {
+            question: "What is the difference between native and cross-platform development?",
+            hint: "Native uses platform-specific languages, cross-platform uses one codebase. Trade-offs between performance, development speed, and maintenance.",
+            difficulty: 'Easy',
+            tags: ['Mobile', 'Native', 'Cross-platform']
+        },
+        {
+            question: "Explain how React Native bridges JavaScript and native modules.",
+            hint: "JavaScript runs in JS thread, communicates with native via bridge. Asynchronous communication enables native performance with JS flexibility.",
+            difficulty: 'Hard',
+            tags: ['React Native', 'Bridge', 'JavaScript']
+        },
+        {
+            question: "How do you handle offline data synchronization in mobile apps?",
+            hint: "Use local storage, sync queues, conflict resolution. Consider optimistic updates and background sync for better UX.",
+            difficulty: 'Medium',
+            tags: ['Mobile', 'Offline', 'Sync']
+        },
     ],
     design: [
-        "Explain the principles of visual hierarchy in UI design.",
-        "How do you conduct effective user research?",
-        "What is the difference between wireframes, mockups, and prototypes?",
+        {
+            question: "Explain the principles of visual hierarchy in UI design.",
+            hint: "Use size, color, contrast, spacing to guide attention. Most important elements should be most prominent through visual weight.",
+            difficulty: 'Easy',
+            tags: ['UI Design', 'Hierarchy', 'Visual Design']
+        },
+        {
+            question: "How do you conduct effective user research?",
+            hint: "Use interviews, surveys, usability testing. Define goals, recruit participants, analyze data to inform design decisions.",
+            difficulty: 'Medium',
+            tags: ['UX Research', 'Users', 'Methodology']
+        },
+        {
+            question: "What is the difference between wireframes, mockups, and prototypes?",
+            hint: "Wireframes show structure, mockups show visual design, prototypes show interaction. Each serves different purposes in the design process.",
+            difficulty: 'Easy',
+            tags: ['Design Process', 'Wireframes', 'Prototypes']
+        },
     ],
 };
 
@@ -91,8 +189,10 @@ export default function MockPrepPage() {
     const [isRecording, setIsRecording] = useState(false);
     const [showFeedback, setShowFeedback] = useState(false);
     const [activeTab, setActiveTab] = useState<'interview' | 'milestones'>('interview');
+    const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Set<string>>(new Set());
 
     const questions = selectedDomain ? mockQuestions[selectedDomain] || [] : [];
+    const currentQuestionData = questions[currentQuestion] || { question: '', hint: '', difficulty: 'Medium' as const, tags: [] };
     const completedMilestones = milestones.filter(m => m.done).length;
     const progressPercent = Math.round((completedMilestones / milestones.length) * 100);
 
@@ -111,6 +211,18 @@ export default function MockPrepPage() {
         setCurrentQuestion(prev => (prev + 1) % questions.length);
         setShowFeedback(false);
         setIsRecording(false);
+    };
+
+    const handleBookmarkToggle = (questionKey: string) => {
+        setBookmarkedQuestions(prev => {
+            const newBookmarks = new Set(prev);
+            if (newBookmarks.has(questionKey)) {
+                newBookmarks.delete(questionKey);
+            } else {
+                newBookmarks.add(questionKey);
+            }
+            return newBookmarks;
+        });
     };
 
     return (
@@ -174,67 +286,63 @@ export default function MockPrepPage() {
                                         </div>
                                     </div>
 
-                                    {/* AI Question Generator */}
-                                    {selectedDomain && (
-                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-3xl p-6 border border-[var(--color-border)]">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="font-bold text-lg flex items-center gap-2">
-                                                    <MessageSquare className="w-5 h-5 text-[var(--color-accent)]" />
-                                                    AI Question Generator
-                                                    <span className="text-xs bg-[var(--color-accent)]/20 text-[var(--color-accent)] px-2 py-0.5 rounded-full font-bold">Groq-Ready</span>
-                                                </h3>
-                                                <span className="text-sm text-[var(--color-muted)]">
-                                                    Q{currentQuestion + 1} of {questions.length}
-                                                </span>
-                                            </div>
+                                     {/* AI Question Generator */}
+                                     {selectedDomain && (
+                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                                             <div className="flex justify-between items-center">
+                                                 <h3 className="font-bold text-lg flex items-center gap-2">
+                                                     <MessageSquare className="w-5 h-5 text-[var(--color-accent)]" />
+                                                     AI Question Generator
+                                                     <span className="text-xs bg-[var(--color-accent)]/20 text-[var(--color-accent)] px-2 py-0.5 rounded-full font-bold">Groq-Ready</span>
+                                                 </h3>
+                                             </div>
 
-                                            {/* Question Card */}
-                                            <div className="bg-black/30 rounded-2xl p-6 border border-white/5 mb-6">
-                                                <AnimatePresence mode="wait">
-                                                    <motion.p
-                                                        key={currentQuestion}
-                                                        initial={{ opacity: 0, x: 20 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        exit={{ opacity: 0, x: -20 }}
-                                                        className="text-xl text-white font-medium leading-relaxed"
-                                                    >
-                                                        {questions[currentQuestion]}
-                                                    </motion.p>
-                                                </AnimatePresence>
-                                            </div>
+                                             {/* Flashcard Component */}
+                                             <Flashcard
+                                                 question={currentQuestionData.question}
+                                                 hint={currentQuestionData.hint}
+                                                 difficulty={currentQuestionData.difficulty}
+                                                 category={domains.find(d => d.id === selectedDomain)?.label}
+                                                 tags={currentQuestionData.tags}
+                                                 isBookmarked={bookmarkedQuestions.has(`${selectedDomain}-${currentQuestion}`)}
+                                                 onBookmark={() => handleBookmarkToggle(`${selectedDomain}-${currentQuestion}`)}
+                                                 currentIndex={currentQuestion}
+                                                 total={questions.length}
+                                                 onNext={handleNextQuestion}
+                                                 onPrev={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                                             />
 
-                                            {/* Record Answer Button */}
-                                            <div className="flex items-center gap-4">
-                                                <button
-                                                    onClick={handleRecordToggle}
-                                                    className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold transition-all ${isRecording
-                                                        ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30'
-                                                        : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 shadow-lg shadow-[var(--color-primary)]/20'
-                                                        }`}
-                                                >
-                                                    {isRecording ? (
-                                                        <><Mic className="w-5 h-5" /> Stop Recording</>
-                                                    ) : (
-                                                        <><MicOff className="w-5 h-5" /> Record Answer</>
-                                                    )}
-                                                </button>
+                                             {/* Record Answer Section */}
+                                             <div className="glass rounded-3xl p-6 border border-[var(--color-border)]">
+                                                 <div className="flex items-center justify-between">
+                                                     <div>
+                                                         <h4 className="font-bold text-white mb-1">Ready to Record Your Answer?</h4>
+                                                          <p className="text-sm text-[var(--color-muted)]">Click record when you&apos;re prepared to answer this question</p>
+                                                     </div>
+                                                     <button
+                                                         onClick={handleRecordToggle}
+                                                         className={`flex items-center gap-3 px-6 py-3 rounded-2xl font-bold transition-all ${isRecording
+                                                             ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30'
+                                                             : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 shadow-lg shadow-[var(--color-primary)]/20'
+                                                             }`}
+                                                     >
+                                                         {isRecording ? (
+                                                             <><Mic className="w-5 h-5" /> Stop Recording</>
+                                                         ) : (
+                                                             <><MicOff className="w-5 h-5" /> Record Answer</>
+                                                         )}
+                                                     </button>
+                                                 </div>
 
-                                                <button
-                                                    onClick={handleNextQuestion}
-                                                    className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-[var(--color-muted)] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-                                                >
-                                                    Next Question <ChevronRight className="w-4 h-4" />
-                                                </button>
-                                            </div>
-
-                                            {isRecording && (
-                                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 text-red-400 text-sm">
-                                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                                                    Recording in progress... Speak your answer clearly.
-                                                </motion.div>
-                                            )}
-                                        </motion.div>
-                                    )}
+                                                 {isRecording && (
+                                                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex items-center gap-2 text-red-400 text-sm">
+                                                         <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                                                         Recording in progress... Speak your answer clearly. The AI will analyze your response for feedback.
+                                                     </motion.div>
+                                                 )}
+                                             </div>
+                                         </motion.div>
+                                     )}
                                 </div>
 
                                 {/* Right: AI Feedback Panel */}
@@ -278,24 +386,44 @@ export default function MockPrepPage() {
                                         )}
                                     </div>
 
-                                    {/* Quick Stats */}
-                                    <div className="glass rounded-3xl p-6 border border-[var(--color-border)]">
-                                        <h3 className="font-bold text-sm mb-3 text-[var(--color-muted)] uppercase tracking-wider">Session Stats</h3>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {[
-                                                { label: 'Interviews', value: '12', icon: Users },
-                                                { label: 'Avg Score', value: '81%', icon: TrendingUp },
-                                                { label: 'Questions', value: '48', icon: MessageSquare },
-                                                { label: 'Hours', value: '6.5', icon: Clock },
-                                            ].map((stat, idx) => (
-                                                <div key={idx} className="bg-black/30 rounded-xl p-3 border border-white/5 text-center">
-                                                    <stat.icon className="w-4 h-4 text-[var(--color-primary)] mx-auto mb-1" />
-                                                    <p className="text-lg font-bold text-white">{stat.value}</p>
-                                                    <p className="text-xs text-[var(--color-muted)]">{stat.label}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                     {/* Quick Stats */}
+                                     <div className="glass rounded-3xl p-6 border border-[var(--color-border)]">
+                                         <h3 className="font-bold text-sm mb-4 text-[var(--color-muted)] uppercase tracking-wider">Session Stats</h3>
+                                         <div className="grid grid-cols-2 gap-3 mb-4">
+                                             {[
+                                                 { label: 'Interviews', value: '12', icon: Users },
+                                                 { label: 'Avg Score', value: '81%', icon: TrendingUp },
+                                                 { label: 'Questions', value: '48', icon: MessageSquare },
+                                                 { label: 'Hours', value: '6.5', icon: Clock },
+                                             ].map((stat, idx) => (
+                                                 <div key={idx} className="bg-black/30 rounded-xl p-3 border border-white/5 text-center">
+                                                     <stat.icon className="w-4 h-4 text-[var(--color-primary)] mx-auto mb-1" />
+                                                     <p className="text-lg font-bold text-white">{stat.value}</p>
+                                                     <p className="text-xs text-[var(--color-muted)]">{stat.label}</p>
+                                                 </div>
+                                             ))}
+                                         </div>
+
+                                         {/* Streak & Performance */}
+                                         <div className="space-y-3">
+                                             <div className="flex items-center justify-between">
+                                                 <span className="text-sm font-medium text-[var(--color-muted)]">Current Streak</span>
+                                                 <div className="flex items-center gap-1">
+                                                     <span className="text-lg font-bold text-orange-400">🔥 7</span>
+                                                     <span className="text-xs text-[var(--color-muted)]">days</span>
+                                                 </div>
+                                             </div>
+                                             <div className="w-full bg-black/30 rounded-full h-2 overflow-hidden">
+                                                 <motion.div
+                                                     initial={{ width: 0 }}
+                                                     animate={{ width: '70%' }}
+                                                     transition={{ duration: 1, delay: 0.5 }}
+                                                     className="bg-gradient-to-r from-orange-500 to-red-500 h-full rounded-full"
+                                                 />
+                                             </div>
+                                             <p className="text-xs text-[var(--color-muted)] text-center">7/10 days to maintain streak</p>
+                                         </div>
+                                     </div>
                                 </div>
                             </div>
                         </motion.div>

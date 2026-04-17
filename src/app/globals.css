@@ -32,12 +32,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ===== Glassmorphism Utility (Red-Tinged) ===== */
+/* ===== Premium Glassmorphism Utility ===== */
 .glass {
-  background: var(--color-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(220, 20, 60, 0.15); /* Crimson tint */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(220, 20, 60, 0.05);
 }
 
 /* ===== Custom Crimson Scrollbar ===== */
@@ -63,6 +67,21 @@ body {
 ::selection {
   background: rgba(220, 20, 60, 0.3);
   color: white;
+}
+
+/* ===== Flashcard 3D Flip Effects ===== */
+.backface-hidden {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* ===== Enhanced Feature Card 3D Effects ===== */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 
 /* ===== Print Styles (Ink Friendly) ===== */

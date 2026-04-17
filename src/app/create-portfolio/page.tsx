@@ -45,14 +45,14 @@ export default function CreatePortfolioPage() {
     const [activeTab, setActiveTab] = useState<'info' | 'summary' | 'experience' | 'skills'>('info');
 
     useEffect(() => {
-        const saved = localStorage.getItem('skillbridge_portfolio');
+        const saved = localStorage.getItem('RUBIX_portfolio');
         if (saved) {
             setData(JSON.parse(saved));
         }
 
         // Handle magic import from parser
         if (searchParams.get('import') === 'true') {
-            const lastParsed = localStorage.getItem('skillbridge_last_parsed');
+            const lastParsed = localStorage.getItem('RUBIX_last_parsed');
             if (lastParsed) {
                 const parsed = JSON.parse(lastParsed);
                 setData({
@@ -80,7 +80,7 @@ export default function CreatePortfolioPage() {
     }, [searchParams]);
 
     const handleSave = () => {
-        localStorage.setItem('skillbridge_portfolio', JSON.stringify(data));
+        localStorage.setItem('RUBIX_portfolio', JSON.stringify(data));
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 2000);
     };
@@ -105,7 +105,7 @@ export default function CreatePortfolioPage() {
     };
 
     const handleImport = () => {
-        const lastParsed = localStorage.getItem('skillbridge_last_parsed');
+        const lastParsed = localStorage.getItem('RUBIX_last_parsed');
         if (lastParsed) {
             const parsed = JSON.parse(lastParsed);
              setData({

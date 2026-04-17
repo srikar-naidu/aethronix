@@ -93,7 +93,7 @@ export default function ResumeParserPage() {
       const data = await response.json();
       setResult(data);
       // Save for the portfolio builder
-      localStorage.setItem('skillbridge_last_parsed', JSON.stringify(data));
+      localStorage.setItem('RUBIX_last_parsed', JSON.stringify(data));
     } catch (err: any) {
       setError(err?.message || 'An error occurred while parsing the resume.');
     } finally {

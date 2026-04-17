@@ -1,6 +1,6 @@
-# SkillBridge AI 🚀
+# RUBIX AI 🚀
 
-SkillBridge AI is a premium, AI-powered platform designed to bridge the gap between talented developers and fast-growing startups. Built with Next.js 15, Tailwind CSS, and powered by Groq's high-speed AI models.
+RUBIX AI is a premium, AI-powered platform designed to bridge the gap between talented developers and fast-growing startups. Built with Next.js 15, Tailwind CSS, and powered by Groq's high-speed AI models.
 
 ## ✨ Core Features
 

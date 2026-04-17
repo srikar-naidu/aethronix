@@ -1,13 +1,63 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Video, Mic, MicOff, BrainCircuit, Play, Square, Loader2, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Video, Mic, MicOff, BrainCircuit, Play, Square, Loader2, Activity,
+    FileText, CheckCircle, AlertTriangle, Target, TrendingUp, BookOpen,
+    ChevronDown, ChevronUp, Download, RefreshCw, Award, XCircle, Lightbulb, X
+} from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import jsPDF from 'jspdf';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
+}
+
+interface QuestionAnalysis {
+    question_number: number;
+    question: string;
+    candidate_answer: string;
+    score: number;
+    feedback: string;
+    ideal_answer: string;
+}
+
+interface InterviewReport {
+    overall_score: number;
+    grade: string;
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    question_analysis: QuestionAnalysis[];
+    communication_score: number;
+    technical_score: number;
+    confidence_score: number;
+    improvement_areas: Array<{ area: string; suggestion: string }>;
+    recommended_resources: Array<{ topic: string; resource: string }>;
+    interview_tips: string[];
+    hiring_recommendation: string;
+}
+
+function getScoreColor(score: number) {
+    if (score >= 70) return 'text-emerald-400';
+    if (score >= 40) return 'text-yellow-400';
+    return 'text-red-400';
+}
+
+function getGradeBg(grade: string) {
+    if (['A+', 'A'].includes(grade)) return 'from-emerald-500 to-emerald-600';
+    if (['B+', 'B'].includes(grade)) return 'from-blue-500 to-blue-600';
+    if (['C+', 'C'].includes(grade)) return 'from-yellow-500 to-yellow-600';
+    return 'from-red-500 to-red-600';
+}
+
+function getRecommendationColor(rec: string) {
+    if (rec.includes('Strong Hire')) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+    if (rec.includes('Hire')) return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
+    if (rec.includes('Maybe')) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
+    return 'text-red-400 bg-red-500/10 border-red-500/30';
 }
 
 export default function AIHirePage() {
@@ -22,6 +72,11 @@ export default function AIHirePage() {
     const [isRecording, setIsRecording] = useState(false);
     const [statusText, setStatusText] = useState('');
 
+    // Report state
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const [report, setReport] = useState<InterviewReport | null>(null);
+    const [expandedQuestions, setExpandedQuestions] = useState<Record<number, boolean>>({});
+
     const recorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const audioStreamRef = useRef<MediaStream | null>(null);
@@ -29,14 +84,12 @@ export default function AIHirePage() {
     const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const messagesRef = useRef<ChatMessage[]>([]);
 
-    // Keep messagesRef in sync
     useEffect(() => { messagesRef.current = messages; }, [messages]);
 
     // Initialize TTS
     useEffect(() => {
         if (typeof window !== 'undefined') {
             synthRef.current = window.speechSynthesis;
-            // Pre-load voices
             synthRef.current?.getVoices();
             if (typeof speechSynthesis !== 'undefined') {
                 speechSynthesis.onvoiceschanged = () => synthRef.current?.getVoices();
@@ -57,24 +110,21 @@ export default function AIHirePage() {
             utteranceRef.current = utterance;
 
             const voices = synth.getVoices();
-            
-            // Try to find a voice that matches the selected language
-            const langCode = language === 'en' ? 'en' : 
-                            language === 'hi' ? 'hi' : 
-                            language === 'te' ? 'te' : 
-                            language === 'ta' ? 'ta' : 
-                            language === 'kn' ? 'kn' : 
-                            language === 'bn' ? 'bn' : 
-                            language === 'gu' ? 'gu' : 
+            const langCode = language === 'en' ? 'en' :
+                            language === 'hi' ? 'hi' :
+                            language === 'te' ? 'te' :
+                            language === 'ta' ? 'ta' :
+                            language === 'kn' ? 'kn' :
+                            language === 'bn' ? 'bn' :
+                            language === 'gu' ? 'gu' :
                             language === 'mr' ? 'mr' : 'en';
 
             const voice = voices.find(v => v.lang.startsWith(langCode) && v.name.includes('Google'))
                 || voices.find(v => v.lang.startsWith(langCode))
                 || voices.find(v => v.lang.startsWith('en'))
                 || voices[0];
-            
-            if (voice) utterance.voice = voice;
 
+            if (voice) utterance.voice = voice;
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
 
@@ -89,43 +139,27 @@ export default function AIHirePage() {
         }, 100);
     }, [language]);
 
-    // Transcribe audio using Groq Whisper
+    // Transcribe audio
     const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
         try {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
-            formData.append('language', language); // Dynamic language hint
-
-            const response = await fetch('/api/transcribe', {
-                method: 'POST',
-                body: formData,
-            });
-
+            formData.append('language', language);
+            const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
             const data = await response.json();
-
-            if (!response.ok) {
-                console.group('[Transcribe API Failed]');
-                console.error('Status:', response.status);
-                console.error('Error:', data.error);
-                console.error('Details:', data.details);
-                console.groupEnd();
-                return `ERROR: ${data.details || data.error || 'Transcription failed'}`;
-            }
-
+            if (!response.ok) return `ERROR: ${data.details || data.error || 'Transcription failed'}`;
             return data.text || '';
         } catch (err: any) {
-            console.error('[Transcribe] Request Exception:', err);
             return `ERROR: ${err.message || 'Connection failed'}`;
         }
     };
 
-    // Send transcribed text to Groq Chat
+    // Send to AI
     const sendToAI = useCallback(async (userText: string) => {
         if (!userText.trim()) {
             setStatusText('Could not hear you. Try speaking louder or closer to the mic.');
             return;
         }
-
         setStatusText('');
         const currentMessages = messagesRef.current;
         const newMessages: ChatMessage[] = [...currentMessages, { role: 'user', content: userText }];
@@ -136,17 +170,9 @@ export default function AIHirePage() {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    messages: newMessages,
-                    language: language // Handle language in chat if needed
-                }),
+                body: JSON.stringify({ messages: newMessages, language }),
             });
-
-            if (!response.ok) {
-                console.warn('[Chat API]', response.status);
-                throw new Error('API error');
-            }
-
+            if (!response.ok) throw new Error('API error');
             const data = await response.json();
             const aiReply = data.message || "Could you say that again?";
             setMessages(prev => [...prev, { role: 'assistant', content: aiReply }]);
@@ -160,81 +186,47 @@ export default function AIHirePage() {
         }
     }, [speakText, language]);
 
-    // Start recording audio via MediaRecorder
+    // Recording
     const startRecording = async () => {
         try {
-            // Cancel AI speech if speaking
             synthRef.current?.cancel();
             setIsSpeaking(false);
-
-            // Get mic access with better constraints
-            const micStream = await navigator.mediaDevices.getUserMedia({ 
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    sampleRate: 44100
-                } 
+            const micStream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 44100 }
             });
-            
-            // Log track info for debugging
-            const audioTrack = micStream.getAudioTracks()[0];
-            console.log(`[Mic] Using track: ${audioTrack.label}, Enabled: ${audioTrack.enabled}, ReadyState: ${audioTrack.readyState}`);
-            
             audioStreamRef.current = micStream;
             audioChunksRef.current = [];
-
             const options = { mimeType: 'audio/webm;codecs=opus' };
-            const recorder = MediaRecorder.isTypeSupported(options.mimeType) 
-                ? new MediaRecorder(micStream, options) 
+            const recorder = MediaRecorder.isTypeSupported(options.mimeType)
+                ? new MediaRecorder(micStream, options)
                 : new MediaRecorder(micStream);
-                
             recorderRef.current = recorder;
-
             recorder.ondataavailable = (event) => {
-                if (event.data && event.data.size > 0) {
-                    audioChunksRef.current.push(event.data);
-                    console.log(`[Recorder] Chunk received: ${event.data.size} bytes`);
-                }
+                if (event.data && event.data.size > 0) audioChunksRef.current.push(event.data);
             };
-
             recorder.onstop = async () => {
-                // Release mic
                 micStream.getTracks().forEach(t => t.stop());
                 audioStreamRef.current = null;
-
                 const audioBlob = new Blob(audioChunksRef.current, { type: recorderRef.current?.mimeType || 'audio/webm' });
-                console.log(`[Recorder] Recording stopped. Total chunks: ${audioChunksRef.current.length}, Final size: ${audioBlob.size} bytes`);
                 audioChunksRef.current = [];
-
                 if (audioBlob.size < 500) {
-                    setStatusText('Could not hear you. Please speak a bit louder or closer to the mic.');
+                    setStatusText('Could not hear you. Please speak louder.');
                     setIsThinking(false);
                     return;
                 }
-
                 setStatusText(t('aihire.transcribing') + '...');
                 setIsThinking(true);
-
                 const text = await transcribeAudio(audioBlob);
-
-                // Filter out 'ghost' transcriptions (silence, dots, or very short noise)
                 const cleanText = (text || '').replace(/[.\s]+/g, '').trim();
-
                 if (text && !text.startsWith('ERROR:') && cleanText.length > 1) {
                     setStatusText('');
                     await sendToAI(text);
                 } else {
-                    if (text?.startsWith('ERROR:')) {
-                        setStatusText(`Error: ${text.replace('ERROR: ', '')}`);
-                    } else {
-                        setStatusText('Could not hear you clearly. Please try again.');
-                    }
+                    setStatusText(text?.startsWith('ERROR:') ? `Error: ${text.replace('ERROR: ', '')}` : 'Could not hear you clearly. Please try again.');
                     setIsThinking(false);
                 }
             };
-
-            recorder.start(2000); // 2-second chunks provide better voice aggregation
+            recorder.start(2000);
             setIsRecording(true);
             setStatusText(t('aihire.startRecording'));
         } catch {
@@ -242,21 +234,14 @@ export default function AIHirePage() {
         }
     };
 
-    // Stop recording
     const stopRecording = () => {
-        if (recorderRef.current && recorderRef.current.state === 'recording') {
-            recorderRef.current.stop();
-        }
+        if (recorderRef.current && recorderRef.current.state === 'recording') recorderRef.current.stop();
         setIsRecording(false);
     };
 
-    // Toggle recording
     const toggleRecording = () => {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
-        }
+        if (isRecording) stopRecording();
+        else startRecording();
     };
 
     // Start Interview
@@ -265,17 +250,17 @@ export default function AIHirePage() {
             const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
             setVideoStream(camStream);
             setIsInterviewing(true);
+            setReport(null);
 
-            // Basic localization for the greeting
             const greetings: Record<string, string> = {
                 en: "Hello! I am Nexus. Let's start the interview. Please briefly introduce yourself and tell me what role or field you are interested in.",
                 hi: "नमस्ते! मैं नेक्सस हूँ। चलिए इंटरव्यू शुरू करते हैं। कृपया संक्षेप में अपना परिचय दें और मुझे बताएं कि आप किस भूमिका या क्षेत्र में रुचि रखते हैं।",
-                te: "నమస్కారం! నేను నెక్సస్. ఇంటర్వ్యూ ప్రారంభిద్దాం. దయచేసి సంక్షిప్తంగా మీ పరిచయం చెప్పండి మరియు మీరు ఏ పాత్ర లేదా రంగంపై ఆసక్తి కలిగి ఉన్నారో నాకు తెలియజేయండి.",
-                ta: "வணக்கம்! நான் நெக்ஸஸ். இன்டர்வியூவைத் துவங்குவோம். தயவுசெய்து சுருக்கமாக உங்களை அறிமுகப்படுத்திக் கொள்ளுங்கள், எந்தத் துறையில் உங்களுக்கு விருப்பம் என்று சொல்லுங்கள்.",
-                kn: "ನಮಸ್ಕಾರ! ನಾನು ನೆಕ್ಸಸ್. ಇಂಟರ್ವ್ಯೂ ಪ್ರಾರಂಭಿಸೋಣ. ದಯವಿಟ್ಟು ಸಂಕ್ಷಿಪ್ತವಾಗಿ ನಿಮ್ಮ ಪರಿಚಯ ಹೇಳಿ ಮತ್ತು ನೀವು ಯಾವ ಕ್ಷೇತ್ರದಲ್ಲಿ ಆಸಕ್ತಿ ಹೊಂದಿದ್ದೀರಿ ಎಂದು ನನಗೆ ತಿಳಿಸಿ.",
-                bn: "নমস্কার! আমি নেক্সাস। চলুন ইন্টারভিউ শুরু করি। অনুগ্রহ করে সংক্ষেপে আপনার পরিচয় দিন এবং আমাকে বলুন আপনি কোন ভূমিকা বা ক্ষেত্রে আগ্রহী।",
-                gu: "નમસ્તે! હું નેક્સસ છું. ચાલો ઇન્ટરવ્યુ શરૂ કરીએ. કૃપા કરીને ટૂંકમાં તમારો પરિચય આપો અને મને જણાવો કે તમને કઈ ભૂમિકા અથવા ક્ષેત્રમાં રસ છે.",
-                mr: "नमस्ते! मी नेक्सस आहे. चला इंटरव्यू सुरू करूया. कृपया थोडक्यात तुमची ओळख करून द्या आणि मला सांगा की तुम्हाला कोणत्या भूमिकेत किंवा क्षेत्रात रस आहे."
+                te: "నమస్కారం! నేను నెక్సస్. ఇంటర్వ్యూ ప్రారంభిద్దాం. దయచేసి సంక్షిప్తంగా మీ పరిచయం చెప్పండి.",
+                ta: "வணக்கம்! நான் நெக்ஸஸ். இன்டர்வியூவைத் துவங்குவோம். தயவுசெய்து சுருக்கமாக உங்களை அறிமுகப்படுத்திக் கொள்ளுங்கள்.",
+                kn: "ನಮಸ್ಕಾರ! ನಾನು ನೆಕ್ಸಸ್. ಇಂಟರ್ವ್ಯೂ ಪ್ರಾರಂಭಿಸೋಣ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪರಿಚಯ ಹೇಳಿ.",
+                bn: "নমস্কার! আমি নেক্সাস। চলুন ইন্টারভিউ শুরু করি। অনুগ্রহ করে আপনার পরিচয় দিন।",
+                gu: "નમસ્તે! હું નેક્સસ છું. ચાલો ઇન્ટરવ્યુ શરૂ કરીએ. કૃપા કરીને તમારો પરિચય આપો.",
+                mr: "नमस्ते! मी नेक्सस आहे. चला इंटरव्यू सुरू करूया. कृपया तुमची ओळख करून द्या."
             };
 
             const greeting = greetings[language] || greetings.en;
@@ -286,8 +271,9 @@ export default function AIHirePage() {
         }
     };
 
-    // End Interview
-    const endInterview = () => {
+    // End Interview & Generate Report
+    const endInterview = async (generateReport = true) => {
+        // Stop all media
         videoStream?.getTracks().forEach(t => t.stop());
         audioStreamRef.current?.getTracks().forEach(t => t.stop());
         synthRef.current?.cancel();
@@ -297,19 +283,358 @@ export default function AIHirePage() {
         setIsRecording(false);
         setIsSpeaking(false);
         setIsThinking(false);
-        setMessages([]);
         setStatusText('');
+
+        // Generate report if there were at least 1 user response
+        const savedMessages = messagesRef.current;
+        if (generateReport && savedMessages.filter(m => m.role === 'user').length > 0) {
+            setIsGeneratingReport(true);
+            try {
+                const res = await fetch('/api/interview-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: savedMessages, language }),
+                });
+                if (!res.ok) throw new Error('Report generation failed');
+                const data: InterviewReport = await res.json();
+                setReport(data);
+            } catch (err) {
+                console.error('Report generation error:', err);
+            } finally {
+                setIsGeneratingReport(false);
+            }
+        } else {
+            setMessages([]);
+        }
+    };
+
+    // PDF Download
+    const downloadReportPDF = () => {
+        if (!report) return;
+        const doc = new jsPDF();
+        const margin = 20;
+        const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+        let y = margin;
+
+        const addText = (text: string, size: number, bold = false) => {
+            doc.setFontSize(size);
+            doc.setFont('helvetica', bold ? 'bold' : 'normal');
+            const lines = doc.splitTextToSize(text, maxWidth);
+            for (const line of lines) {
+                if (y > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); y = margin; }
+                doc.text(line, margin, y);
+                y += size * 0.5;
+            }
+            y += 4;
+        };
+
+        addText('INTERVIEW PERFORMANCE REPORT', 18, true);
+        addText(`Grade: ${report.grade} | Score: ${report.overall_score}/100`, 14, true);
+        addText(`Recommendation: ${report.hiring_recommendation}`, 12, true);
+        y += 4;
+        addText(report.summary, 11);
+        y += 6;
+
+        addText('SCORE BREAKDOWN', 14, true);
+        addText(`Technical: ${report.technical_score}/100 | Communication: ${report.communication_score}/100 | Confidence: ${report.confidence_score}/100`, 11);
+        y += 6;
+
+        addText('QUESTION-BY-QUESTION ANALYSIS', 14, true);
+        report.question_analysis.forEach(q => {
+            y += 2;
+            addText(`Q${q.question_number}: ${q.question}`, 11, true);
+            addText(`Your Answer: ${q.candidate_answer}`, 10);
+            addText(`Score: ${q.score}/100 — ${q.feedback}`, 10);
+            addText(`Ideal Answer: ${q.ideal_answer}`, 10);
+            y += 4;
+        });
+
+        addText('IMPROVEMENT TIPS', 14, true);
+        report.interview_tips.forEach(tip => addText(`• ${tip}`, 10));
+
+        doc.save('interview-report.pdf');
+    };
+
+    // Reset
+    const resetAll = () => {
+        setReport(null);
+        setMessages([]);
+        setIsGeneratingReport(false);
     };
 
     // Attach video stream
     useEffect(() => {
-        if (videoRef.current && videoStream) {
-            videoRef.current.srcObject = videoStream;
-        }
+        if (videoRef.current && videoStream) videoRef.current.srcObject = videoStream;
     }, [videoStream]);
 
     const currentAssistantMessage = messages.filter(m => m.role === 'assistant').pop()?.content || "Ready to begin your technical interview?";
+    const userResponseCount = messages.filter(m => m.role === 'user').length;
 
+    /* ═════════════════ REPORT VIEW ═════════════════ */
+    if (report) {
+        return (
+            <div className="min-h-screen pt-24 pb-16 bg-[var(--color-background)]">
+                <div className="container mx-auto px-4 max-w-4xl">
+
+                    {/* Report Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center mb-8"
+                    >
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-sm font-medium mb-4">
+                            <FileText className="w-4 h-4" />
+                            Interview Report
+                        </div>
+                        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">{t('aihire.reportTitle')}</h1>
+                        <p className="text-[var(--color-muted)]">{report.summary}</p>
+                    </motion.div>
+
+                    {/* Score Hero */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="glass rounded-3xl p-8 border border-[var(--color-border)] mb-6 relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 w-60 h-60 rounded-full blur-3xl -mr-30 -mt-30 opacity-20" style={{ background: report.overall_score >= 70 ? '#34d399' : report.overall_score >= 40 ? '#facc15' : '#f87171' }} />
+
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                            <div className="flex items-center gap-6">
+                                {/* Grade Circle */}
+                                <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br ${getGradeBg(report.grade)} flex items-center justify-center shadow-lg`}>
+                                    <span className="text-4xl font-black text-white">{report.grade}</span>
+                                </div>
+                                <div>
+                                    <div className={`text-5xl font-black ${getScoreColor(report.overall_score)}`}>
+                                        {report.overall_score}<span className="text-2xl text-[var(--color-muted)]">/100</span>
+                                    </div>
+                                    <div className={`mt-2 px-3 py-1 rounded-lg text-sm font-bold border inline-block ${getRecommendationColor(report.hiring_recommendation)}`}>
+                                        {report.hiring_recommendation}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Sub-scores */}
+                            <div className="flex gap-6">
+                                {[
+                                    { label: 'Technical', score: report.technical_score, icon: Target },
+                                    { label: 'Communication', score: report.communication_score, icon: Activity },
+                                    { label: 'Confidence', score: report.confidence_score, icon: Award },
+                                ].map(item => (
+                                    <div key={item.label} className="text-center">
+                                        <div className="relative w-16 h-16 mx-auto mb-2">
+                                            <svg className="w-full h-full -rotate-90" viewBox="0 0 60 60">
+                                                <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+                                                <circle cx="30" cy="30" r="25" fill="none"
+                                                    stroke={item.score >= 70 ? '#34d399' : item.score >= 40 ? '#facc15' : '#f87171'}
+                                                    strokeWidth="4" strokeLinecap="round"
+                                                    strokeDasharray={`${2 * Math.PI * 25}`}
+                                                    strokeDashoffset={2 * Math.PI * 25 * (1 - item.score / 100)}
+                                                />
+                                            </svg>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className={`text-sm font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-[var(--color-muted)]">{item.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Strengths & Weaknesses */}
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+                            className="glass rounded-2xl p-6 border border-emerald-500/20">
+                            <h3 className="text-sm font-bold text-emerald-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                                <CheckCircle className="w-4 h-4" /> {t('aihire.whatYouDidWell')}
+                            </h3>
+                            <div className="space-y-2">
+                                {report.strengths.map((s, i) => (
+                                    <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-500/5">
+                                        <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                        <span className="text-sm text-gray-300">{s}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+                            className="glass rounded-2xl p-6 border border-red-500/20">
+                            <h3 className="text-sm font-bold text-red-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                                <AlertTriangle className="w-4 h-4" /> {t('aihire.whereYouStruggled')}
+                            </h3>
+                            <div className="space-y-2">
+                                {report.weaknesses.map((w, i) => (
+                                    <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-red-500/5">
+                                        <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                                        <span className="text-sm text-gray-300">{w}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* Question-by-Question Analysis */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                        className="glass rounded-3xl border border-[var(--color-border)] mb-6 overflow-hidden">
+                        <div className="p-6 border-b border-[var(--color-border)]">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Target className="w-5 h-5 text-[var(--color-primary)]" />
+                                {t('aihire.breakdown')}
+                            </h3>
+                        </div>
+                        <div className="divide-y divide-white/5">
+                            {report.question_analysis.map((q) => (
+                                <div key={q.question_number}>
+                                    <button
+                                        onClick={() => setExpandedQuestions(prev => ({ ...prev, [q.question_number]: !prev[q.question_number] }))}
+                                        className="w-full p-5 flex items-center justify-between hover:bg-white/[0.02] transition"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${q.score >= 70 ? 'bg-emerald-500/10 text-emerald-400' : q.score >= 40 ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'}`}>
+                                                {q.score}
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="text-sm font-medium text-white">Q{q.question_number}: {q.question.slice(0, 80)}{q.question.length > 80 ? '...' : ''}</p>
+                                                <p className="text-xs text-[var(--color-muted)] mt-0.5">{q.feedback.slice(0, 60)}...</p>
+                                            </div>
+                                        </div>
+                                        {expandedQuestions[q.question_number] ? <ChevronUp className="w-4 h-4 text-[var(--color-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--color-muted)]" />}
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {expandedQuestions[q.question_number] && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="px-5 pb-5 space-y-3">
+                                                    <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                                                        <p className="text-[10px] text-[var(--color-muted)] uppercase tracking-wider font-bold mb-1">{t('aihire.yourAnswer')}</p>
+                                                        <p className="text-sm text-gray-300">{q.candidate_answer}</p>
+                                                    </div>
+                                                    <div className="p-3 rounded-xl bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20">
+                                                        <p className="text-[10px] text-[var(--color-primary)] uppercase tracking-wider font-bold mb-1">{t('aihire.feedback')}</p>
+                                                        <p className="text-sm text-gray-300">{q.feedback}</p>
+                                                    </div>
+                                                    <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                                        <p className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                                                            <Lightbulb className="w-3 h-3" /> {t('aihire.shouldHaveSaid')}
+                                                        </p>
+                                                        <p className="text-sm text-gray-300">{q.ideal_answer}</p>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* Improvement Areas */}
+                    {report.improvement_areas.length > 0 && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                            className="glass rounded-2xl p-6 border border-[var(--color-border)] mb-6">
+                            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wider">
+                                <TrendingUp className="w-4 h-4 text-blue-400" /> {t('aihire.howToImprove')}
+                            </h3>
+                            <div className="space-y-3">
+                                {report.improvement_areas.map((imp, i) => (
+                                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                                        <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                                            <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-white">{imp.area}</p>
+                                            <p className="text-xs text-[var(--color-muted)]">{imp.suggestion}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Interview Tips */}
+                    {report.interview_tips.length > 0 && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                            className="glass rounded-2xl p-6 border border-yellow-500/20 mb-6">
+                            <h3 className="text-sm font-bold text-yellow-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                                <Lightbulb className="w-4 h-4" /> {t('aihire.tipsNextTime')}
+                            </h3>
+                            <div className="space-y-2">
+                                {report.interview_tips.map((tip, i) => (
+                                    <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-yellow-500/5">
+                                        <span className="text-yellow-400 text-sm">💡</span>
+                                        <span className="text-sm text-gray-300">{tip}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                        <button onClick={resetAll}
+                            className="px-6 py-3 rounded-xl border border-white/10 text-[var(--color-muted)] font-medium hover:bg-white/5 transition flex items-center justify-center gap-2">
+                            <RefreshCw className="w-4 h-4" /> {t('aihire.tryAnother')}
+                        </button>
+                        <button onClick={downloadReportPDF}
+                            className="px-6 py-3 rounded-xl bg-[var(--color-primary)] text-white font-medium hover:bg-[var(--color-primary)]/90 transition flex items-center justify-center gap-2">
+                            <Download className="w-4 h-4" /> {t('aihire.downloadPdf')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    /* ═════════════════ GENERATING REPORT VIEW ═════════════════ */
+    if (isGeneratingReport) {
+        return (
+            <div className="min-h-screen pt-24 pb-16 bg-[var(--color-background)] flex items-center justify-center">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-md glass rounded-3xl p-10 border border-[var(--color-border)] text-center"
+                >
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 border-4 border-t-[var(--color-primary)] border-r-transparent border-b-[var(--color-accent)]/30 border-l-transparent rounded-full"
+                        />
+                        <FileText className="absolute inset-0 m-auto w-10 h-10 text-[var(--color-primary)] animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Generating Your Report</h3>
+                    <p className="text-[var(--color-muted)] text-sm mb-4">
+                        Analyzing {userResponseCount} response{userResponseCount !== 1 ? 's' : ''} and preparing detailed feedback...
+                    </p>
+                    <div className="space-y-2 text-left">
+                        {['Analyzing your answers...', 'Scoring each response...', 'Generating ideal answers...', 'Preparing recommendations...'].map((step, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.5 }}
+                                className="flex items-center gap-2 p-2 rounded-lg"
+                            >
+                                <Loader2 className="w-4 h-4 text-[var(--color-primary)] animate-spin flex-shrink-0" />
+                                <span className="text-sm text-gray-400">{step}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    /* ═════════════════ INTERVIEW VIEW ═════════════════ */
     return (
         <div className="min-h-screen pt-24 pb-12">
             <div className="container mx-auto px-4 lg:px-8 h-[calc(100vh-8rem)]">
@@ -352,13 +677,9 @@ export default function AIHirePage() {
                                         <span className="text-xs font-bold text-white tracking-wider">REC</span>
                                     </div>
 
-                                    {/* Status Message */}
                                     {statusText && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/10 max-w-2xl w-[90%] text-center"
-                                        >
+                                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                                            className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/10 max-w-2xl w-[90%] text-center">
                                             <p className="text-yellow-300 font-medium">{statusText}</p>
                                         </motion.div>
                                     )}
@@ -373,8 +694,11 @@ export default function AIHirePage() {
                                         >
                                             {isRecording ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
                                         </button>
-                                        <button onClick={endInterview} className="px-6 py-3 rounded-full hover:bg-red-500/20 text-red-400 font-bold flex items-center gap-2 transition ml-2 uppercase tracking-tighter text-xs">
-                                            <Square className="w-4 h-4 fill-current" /> {t('common.close')}
+                                        <button
+                                            onClick={() => endInterview(true)}
+                                            className="px-5 py-3 rounded-full bg-[var(--color-primary)]/20 hover:bg-[var(--color-primary)]/40 text-white font-bold flex items-center gap-2 transition text-xs uppercase tracking-wider border border-[var(--color-primary)]/30"
+                                        >
+                                            <FileText className="w-4 h-4" /> End & Get Report
                                         </button>
                                     </div>
                                 </>
@@ -409,16 +733,21 @@ export default function AIHirePage() {
                                             <div className="flex justify-between text-sm mb-1">
                                                 <span className="text-gray-300">Interview Progress</span>
                                                 <span className="text-[var(--color-accent)] font-bold">
-                                                    {Math.min(messages.filter(m => m.role === 'user').length, 10)} / 10
+                                                    {Math.min(userResponseCount, 10)} / 10
                                                 </span>
                                             </div>
                                             <div className="w-full bg-black/50 rounded-full h-1.5 overflow-hidden">
                                                 <div
                                                     className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] h-full rounded-full transition-all"
-                                                    style={{ width: `${Math.min(messages.filter(m => m.role === 'user').length * 10, 100)}%` }}
+                                                    style={{ width: `${Math.min(userResponseCount * 10, 100)}%` }}
                                                 ></div>
                                             </div>
                                         </div>
+                                        {userResponseCount > 0 && (
+                                            <p className="text-xs text-[var(--color-muted)] text-center">
+                                                You can end anytime to get your report
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="pt-4 border-t border-white/10">
                                         <p className="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">{t('aihire.transcript')}</p>

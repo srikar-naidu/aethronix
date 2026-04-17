@@ -65,7 +65,7 @@ export default function LoginPage() {
 
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] mb-2">
-                            SkillBridge AI
+                            RUBIX AI
                         </h1>
                         <p className="text-[var(--color-muted)]">Welcome back. Enter your details to proceed.</p>
                     </div>

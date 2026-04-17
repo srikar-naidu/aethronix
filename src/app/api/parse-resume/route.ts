@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
         // 2. Use Groq to parse into structured JSON
         const prompt = `
-        You are an expert Talent Acquisition AI specializing in rural skill development for the SkillBridge AI platform.
+        You are an expert Talent Acquisition AI specializing in rural skill development for the RUBIX AI platform.
         Extract detailed information from the following resume text and format it as a valid JSON object.
         The user's preferred language for analysis is: ${language}.
         Perform all analysis and provide the final JSON in ${language}.

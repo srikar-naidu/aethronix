@@ -3,13 +3,14 @@
 import { motion } from 'framer-motion';
 import {
   CheckCircle, Zap, Target, Video, Briefcase,
-  FileText, TrendingUp, Search, Award
+  FileText, TrendingUp, Search, Award, Radar
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import dynamic from 'next/dynamic';
 
 const SplineScene = dynamic(() => import('@/components/SplineScene'), { ssr: false });
+import FeatureCard from '@/components/FeatureCard';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -77,6 +78,13 @@ export default function Home() {
       icon: Award,
       href: '/dashboard',
       color: 'text-red-400'
+    },
+    {
+      title: t('navbar.jobscout'),
+      description: 'AI agent that finds, scores, and prepares you for the best-fit jobs',
+      icon: Radar,
+      href: '/job-scout',
+      color: 'text-cyan-400'
     }
   ];
 
@@ -97,22 +105,32 @@ export default function Home() {
         <div className="relative z-[2] h-full flex items-center pointer-events-none">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="max-w-2xl"
             >
-              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-6">
-                <span className="text-white">{t('home.hero.title')} </span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]">
+              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tighter mb-6 leading-tight">
+                <span className="text-white drop-shadow-md">{t('home.hero.title')} </span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] drop-shadow-[0_0_15px_rgba(220,20,60,0.4)]">
                   {t('home.hero.titleBold')}
                 </span>
               </h1>
-              <p className="text-xl text-white/70 mb-8 leading-relaxed">
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.3 }}
+                className="text-xl text-white/80 mb-8 leading-relaxed tracking-wide font-light"
+              >
                 {t('home.hero.subtitle')}
-              </p>
+              </motion.p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pointer-events-auto">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="flex flex-col sm:flex-row gap-4 pointer-events-auto"
+              >
                 <Link
                   href="/login"
                   className="inline-flex justify-center items-center px-8 py-4 rounded-xl bg-[var(--color-primary)] text-white font-semibold hover:bg-[var(--color-primary)]/90 transition-all hover:scale-105 shadow-lg shadow-[var(--color-primary)]/25"
@@ -125,7 +143,7 @@ export default function Home() {
                 >
                   {t('home.hero.explore')}
                 </Link>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -141,30 +159,11 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="h-full"
-              >
-                <Link href={feature.href} className="block h-full group">
-                  <div className="h-full glass rounded-2xl p-8 border border-[var(--color-border)] hover:border-[var(--color-primary)]/50 transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-[var(--color-primary)]/10 transition-colors" />
-
-                    <feature.icon className={`w-10 h-10 mb-6 ${feature.color}`} />
-                    <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                    <p className="text-[var(--color-muted)] leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {features.map((feature, index) => (
+               <FeatureCard key={feature.title} feature={feature} index={index} />
+             ))}
+           </div>
         </div>
       </section>
     </main>

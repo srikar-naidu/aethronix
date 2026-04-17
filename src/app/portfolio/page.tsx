@@ -56,7 +56,7 @@ export default function PortfolioPage() {
     const [isCustom, setIsCustom] = useState(false);
 
     useEffect(() => {
-        const saved = localStorage.getItem('skillbridge_portfolio');
+        const saved = localStorage.getItem('RUBIX_portfolio');
         if (saved) {
             setData(JSON.parse(saved));
             setIsCustom(true);
@@ -70,7 +70,7 @@ export default function PortfolioPage() {
     };
 
     const handleExportTXT = () => {
-        const title = `SkillBridge AI - Professional Portfolio\n${"=".repeat(36)}\n\n`;
+        const title = `RUBIX AI - Professional Portfolio\n${"=".repeat(36)}\n\n`;
         const name = `Name: ${data.personalInfo.name}\nRole: ${data.personalInfo.role}\n\n`;
         const summary = `AI Summary:\n${data.summary}\n\n`;
         
@@ -105,7 +105,7 @@ export default function PortfolioPage() {
                             {isCustom ? "Your Digital Portfolio" : "AI Built Portfolio"}
                         </h1>
                         <p className="text-[var(--color-muted)]">
-                            {isCustom ? "Your verified identity on SkillBridge AI." : "Reviewing a sample AI-optimized profile."}
+                            {isCustom ? "Your verified identity on RUBIX AI." : "Reviewing a sample AI-optimized profile."}
                         </p>
                     </div>
 
@@ -207,7 +207,7 @@ export default function PortfolioPage() {
                             </section>
 
                             <section className="page-break-avoid">
-                                <h3 className="text-lg font-bold uppercase tracking-wider text-[var(--color-primary)] mb-4 pb-2 border-b border-white/10 print:text-gray-400 print:border-gray-200">SkillBridge Badges</h3>
+                                <h3 className="text-lg font-bold uppercase tracking-wider text-[var(--color-primary)] mb-4 pb-2 border-b border-white/10 print:text-gray-400 print:border-gray-200">RUBIX Badges</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 print:bg-blue-50 print:border-blue-100">
@@ -215,7 +215,7 @@ export default function PortfolioPage() {
                                         </div>
                                         <div>
                                             <p className="font-bold text-white text-sm print:text-gray-900">Verified Profile</p>
-                                            <p className="text-xs text-gray-500">Issued by SkillBridge AI</p>
+                                            <p className="text-xs text-gray-500">Issued by RUBIX AI</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">

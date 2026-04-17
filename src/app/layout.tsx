@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkillBridge AI — Skills-First Internship Marketplace",
+  title: "RUBIX — Skills-First Internship Marketplace",
   description: "AI-powered internship marketplace connecting rural college students with micro-internships using a skills-first approach.",
 };
 

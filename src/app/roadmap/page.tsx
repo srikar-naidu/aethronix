@@ -226,7 +226,7 @@ export default function RoadmapPage() {
                                                 </div>
                                                 <div>
                                                     <div className="text-sm font-bold text-white">{t('roadmap.earned')}: {module.reward}</div>
-                                                    <div className="text-xs text-gray-500">Automatically added to your verified SkillBridge profile.</div>
+                                                    <div className="text-xs text-gray-500">Automatically added to your verified RUBIX profile.</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -336,7 +336,7 @@ export default function RoadmapPage() {
                         <div>
                             <h4 className="text-xl font-bold text-white mb-2">{t('roadmap.marketIntelligence')}</h4>
                             <p className="text-sm text-[var(--color-muted)] leading-relaxed max-w-3xl">
-                                SkillBridge roadmaps are dynamically enhanced by our specialized LLM fine-tuned on real-world engineering documentation. Every Deep-Dive is uniquely generated to match industry trends for {selectedDomain} in 2026.
+                                RUBIX roadmaps are dynamically enhanced by our specialized LLM fine-tuned on real-world engineering documentation. Every Deep-Dive is uniquely generated to match industry trends for {selectedDomain} in 2026.
                             </p>
                         </div>
                     </div>
