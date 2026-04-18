@@ -220,17 +220,48 @@ export default function VerifyPage() {
         }
     };
 
-    // Mock Run Code
+    // Real Code Execution & Evaluation
     const [runOutput, setRunOutput] = useState('');
-    const handleRunCode = () => {
-        setRunOutput('Running test cases...\n\nTest Case 1: ✅ Passed\nTest Case 2: ✅ Passed\nTest Case 3: ⏳ Running...');
-        setTimeout(() => {
-            setRunOutput('Test Case 1: ✅ Passed\nTest Case 2: ✅ Passed\nTest Case 3: ✅ Passed\n\n3/3 test cases passed.');
-        }, 1500);
+    const handleRunCode = async () => {
+        // Sanity Check: Ensure code isn't just the starter boilerplate
+        const starter = STARTER_CODE[selectedLanguage].trim();
+        if (userCode.trim() === starter || userCode.trim().length < 40) {
+            setRunOutput('⚠️ Error: Please implement your solution before running.\n\nCurrent code is empty or boilerplate only.');
+            return;
+        }
+
+        setIsEvaluating(true);
+        setRunOutput('Compiling & executing code against judge cases...');
+        
+        try {
+            const res = await fetch('/api/verify/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problem: currentProblem,
+                    code: userCode,
+                    language: selectedLanguage
+                }),
+            });
+            const result = await res.json();
+            setEvaluationResult(result);
+            setRunOutput(`Run Completed.\nVerdict: ${result.verdict || 'Evaluation Complete'}`);
+        } catch (error) {
+            setRunOutput('❌ Execution System Error. Please check your connectivity.');
+        } finally {
+            setIsEvaluating(false);
+        }
     };
 
     // Submit & Evaluate DSA
     const handleSubmit = async () => {
+        // Sanity Check
+        const starter = STARTER_CODE[selectedLanguage].trim();
+        if (userCode.trim() === starter || userCode.trim().length < 40) {
+            alert("Please implement your solution first!");
+            return;
+        }
+
         setIsEvaluating(true);
         setRunOutput('');
         
@@ -524,65 +555,87 @@ export default function VerifyPage() {
                                                 </span>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
-                                                    <p className="text-[var(--color-muted)] text-xs mb-1">Correctness</p>
-                                                    <p className="font-bold text-white">{evaluationResult.correctness}%</p>
-                                                </div>
-                                                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
-                                                    <p className="text-[var(--color-muted)] text-xs mb-1">Edge Cases</p>
-                                                    <p className="font-bold text-white">{evaluationResult.edgeCases}%</p>
-                                                </div>
-                                                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
-                                                    <p className="text-[var(--color-muted)] text-xs mb-1">Time Complexity</p>
-                                                    <p className="font-bold text-[var(--color-accent)] text-xs">{evaluationResult.timeComplexity}</p>
-                                                </div>
-                                                <div className="bg-black/30 rounded-xl p-3 border border-white/5">
-                                                    <p className="text-[var(--color-muted)] text-xs mb-1">Space Complexity</p>
-                                                    <p className="font-bold text-blue-400 text-xs">{evaluationResult.spaceComplexity}</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-black/30 rounded-xl p-3 border border-white/5">
-                                                <p className="text-[var(--color-muted)] text-xs mb-2">Optimization Suggestions</p>
-                                                <ul className="space-y-1">
-                                                    {evaluationResult.optimizations.map((o, i) => (
-                                                        <li key={i} className="text-xs text-gray-400 flex items-start gap-1.5">
-                                                            <ChevronRight className="w-3 h-3 text-[var(--color-primary)] shrink-0 mt-0.5" /> {o}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-
-                                            {/* Badge Unlock */}
-                                            {evaluationResult.overallScore >= PASS_THRESHOLD && (
-                                                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.5 }}
-                                                    className="p-4 rounded-xl bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/50 text-center">
-                                                    <Trophy className="w-8 h-8 text-[var(--color-accent)] mx-auto mb-2" />
-                                                    <p className="font-bold text-[var(--color-accent)]">🎉 Verified Badge Unlocked!</p>
-                                                    <p className="text-xs text-gray-400 mt-1">Top {100 - evaluationResult.percentile}% in {currentProblem?.topic}</p>
-                                                </motion.div>
-                                            )}
-                                        </motion.div>
-                                    ) : runOutput ? (
-                                        <motion.div key="output" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                            <h4 className="font-bold text-sm text-[var(--color-muted)] mb-2 flex items-center gap-2"><Terminal className="w-4 h-4" /> Output</h4>
-                                            <pre className="text-sm text-green-300 font-mono whitespace-pre-wrap">{runOutput}</pre>
-                                        </motion.div>
-                                    ) : (
-                                        <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[var(--color-muted)] py-4 opacity-60">
-                                            <Terminal className="w-6 h-6 mx-auto mb-2" />
-                                            <p className="text-sm">Run or submit your code to see output</p>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+                                             <div className="grid grid-cols-2 gap-2 text-sm">
+                                                 <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                                                     <p className="text-[var(--color-muted)] text-xs mb-1">Correctness</p>
+                                                     <p className="font-bold text-white uppercase tracking-tight">{evaluationResult.correctness}%</p>
+                                                 </div>
+                                                 <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                                                     <p className="text-[var(--color-muted)] text-xs mb-1">Status</p>
+                                                     <p className={`font-bold ${evaluationResult.overallScore >= PASS_THRESHOLD ? 'text-[var(--color-accent)]' : 'text-red-500'} uppercase tracking-tighter`}>
+                                                         {evaluationResult.overallScore >= PASS_THRESHOLD ? 'VERIFIED' : 'FAILED'}
+                                                     </p>
+                                                 </div>
+                                             </div>
+ 
+                                             {/* Judge Verdict */}
+                                             {(evaluationResult as any).verdict && (
+                                                 <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+                                                     <p className="text-[var(--color-muted)] text-[10px] uppercase tracking-widest mb-1 font-bold">Judge Verdict</p>
+                                                     <p className="text-sm text-red-400 font-medium italic">"{(evaluationResult as any).verdict}"</p>
+                                                 </div>
+                                             )}
+ 
+                                             {/* Test Case Breakdown */}
+                                             {evaluationResult.testCaseResults && evaluationResult.testCaseResults.length > 0 && (
+                                                 <div className="space-y-2">
+                                                     <p className="text-[var(--color-muted)] text-[10px] uppercase tracking-widest font-bold">Execution Logs</p>
+                                                     <div className="space-y-1">
+                                                         {evaluationResult.testCaseResults.map((tc, i) => (
+                                                             <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5 text-[10px] font-mono">
+                                                                 <div className="flex items-center gap-2 truncate max-w-[70%]">
+                                                                     <span className="text-gray-500">In: {tc.input.slice(0, 20)}...</span>
+                                                                     <span className={tc.passed ? 'text-green-500' : 'text-red-500'}>
+                                                                         {tc.passed ? 'PASS' : 'FAIL'}
+                                                                     </span>
+                                                                 </div>
+                                                                 {!tc.passed && <span className="text-[8px] text-gray-400">Exp: {tc.expected}</span>}
+                                                             </div>
+                                                         ))}
+                                                     </div>
+                                                 </div>
+                                             )}
+ 
+                                             <div className="bg-black/30 rounded-xl p-3 border border-white/5">
+                                                 <p className="text-[var(--color-muted)] text-xs mb-2">Optimization Suggestions</p>
+                                                 <ul className="space-y-1">
+                                                     {evaluationResult.optimizations.map((o, i) => (
+                                                         <li key={i} className="text-xs text-gray-400 flex items-start gap-1.5">
+                                                             <ChevronRight className="w-3 h-3 text-[var(--color-primary)] shrink-0 mt-0.5" /> {o}
+                                                         </li>
+                                                     ))}
+                                                 </ul>
+                                             </div>
+ 
+                                             {/* Badge Unlock */}
+                                             {evaluationResult.overallScore >= PASS_THRESHOLD && (
+                                                 <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0.5 }}
+                                                     className="p-4 rounded-xl bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/50 text-center">
+                                                     <Trophy className="w-8 h-8 text-[var(--color-accent)] mx-auto mb-2" />
+                                                     <p className="font-bold text-[var(--color-accent)]">🎉 Verified Badge Unlocked!</p>
+                                                     <p className="text-xs text-gray-400 mt-1">Top {100 - evaluationResult.percentile}% in {currentProblem?.topic}</p>
+                                                 </motion.div>
+                                             )}
+                                         </motion.div>
+                                     ) : runOutput ? (
+                                         <motion.div key="output" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                             <h4 className="font-bold text-sm text-[var(--color-muted)] mb-2 flex items-center gap-2"><Terminal className="w-4 h-4" /> Output</h4>
+                                             <pre className="text-sm text-green-300 font-mono whitespace-pre-wrap">{runOutput}</pre>
+                                         </motion.div>
+                                     ) : (
+                                         <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[var(--color-muted)] py-4 opacity-60">
+                                             <Terminal className="w-6 h-6 mx-auto mb-2" />
+                                             <p className="text-sm">Run or submit your code to see output</p>
+                                         </motion.div>
+                                     )}
+                                 </AnimatePresence>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         );
+     }
 
     // ===== ORIGINAL VERIFY PAGE (extended with DSA option) =====
     return (

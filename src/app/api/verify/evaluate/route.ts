@@ -8,44 +8,43 @@ export async function POST(req: Request) {
 
         const { problem, code, language } = await req.json();
 
-        const prompt = `You are a High-Performance Code Execution Engine and Technical Judge.
-Your task is to evaluate the provided code against the problem description and hidden test cases. 
+        const prompt = `You are a Strict Adversarial Technical Judge.
+Your sole purpose is to ruthlessly verify the correctness of the code against the provided problem and hidden test cases.
 
-**Programming Language:** ${language}
+**Rules for Judging:**
+1. **Zero Tolerance**: If the code fails even ONE hidden test case, the "correctness" score MUST be below 40%.
+2. **Mental Execution**: Execute the code line-by-line for each hidden test case. 
+3. **Output Matching**: The output MUST match the "expected" value exactly. If it differs by even a character (unless trivial whitespace), it is a FAIL.
+4. **Logic Integrity**: Detect and penalize 'Cheating' or 'Hardcoding' (e.g., 'if (input == x) return y'). If the code doesn't solve the *general* problem, fail it as 'Logic Fraud'.
+5. **No Assumptions**: Do not guess if the user meant to do something correctly. Judge the code as it is written.
 
 **Problem:**
 ${problem.title}
 ${problem.description}
 
-**User Code:**
+**User Code (${language}):**
 \`\`\`${language}
 ${code}
 \`\`\`
 
-**Hidden Test Cases to Verify:**
+**Hidden Test Cases:**
 ${JSON.stringify(problem.testCases, null, 2)}
 
-**Evaluation Instructions:**
-1. Mentally execute the code for EACH hidden test case.
-2. Determine if the output matches the expected output.
-3. Analyze time and space complexity based on the logic used.
-4. Check for edge cases, null handling, and language-specific best practices.
-
-**You MUST respond ONLY with a valid JSON scorecard:**
+**Required JSON Format Storecard (Return ONLY raw JSON):**
 {
-  "overallScore": 85, (0-100)
-  "correctness": 90, (0-100)
-  "edgeCases": 80, (0-100)
-  "timeComplexity": "O(n log n) - Efficient sorting approach",
-  "spaceComplexity": "O(n) - Additional storage used for hash map",
-  "percentile": 92, (Randomized elite ranking based on quality)
-  "optimizations": ["Consider using two pointers instead of a map", "Handle empty array input"],
+  "overallScore": 0-100,
+  "correctness": 0-100,
+  "edgeCases": 0-100,
+  "timeComplexity": "string",
+  "spaceComplexity": "string",
+  "percentile": 0-100,
+  "optimizations": ["list"],
   "testCaseResults": [
-    {"input": "...", "output": "actual result", "expected": "...", "passed": true}
-  ]
-}
-
-**CRITICAL: DO NOT add markdown triple backticks. RETURN ONLY RAW JSON.**`;
+    {"input": "in", "output": "out", "expected": "exp", "passed": boolean}
+  ],
+  "verdict": "Clear concise judge verdict (e.g. 'Failed due to logic flaw in Case 3')",
+  "passedAll": boolean
+}`;
 
         const completion = await groq.chat.completions.create({
             messages: [
